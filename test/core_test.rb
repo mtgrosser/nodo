@@ -1,0 +1,1 @@
+# class Foo < Jass::Core; dependency fs: 'fs'; function :wuppy, "function () { return fs.readFileSync('LICENSE', 'utf-8') }"; end
