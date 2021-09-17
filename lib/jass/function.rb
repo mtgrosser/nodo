@@ -7,7 +7,7 @@ module Jass
     end
     
     def to_js
-      "__jass_methods[#{name.to_json}] = (#{code});\n"
+      "var #{name} = __jass_methods[#{name.to_json}] = (#{code});\n"
     end
   end
 end

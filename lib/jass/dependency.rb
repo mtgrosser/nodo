@@ -7,7 +7,7 @@ module Jass
     end
   
     def to_js
-      "const #{name} = require(#{package.to_json});\n"
+      "var #{name} = require(#{package.to_json});\n"
     end
    
   end

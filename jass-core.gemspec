@@ -5,7 +5,7 @@ require 'jass/core/version'
 Gem::Specification.new do |s|
   s.name          = 'jass-core'
   s.version       = Jass::Core::VERSION
-  s.date          = '2021-09-14'
+  s.date          = '2021-09-17'
   s.authors       = ['Matthias Grosser']
   s.email         = ['mtgrosser@gmx.net']
   s.license       = 'MIT'
