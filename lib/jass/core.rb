@@ -21,7 +21,7 @@ module Jass
     attr_reader :root, :env, :tmpdir
     
     class << self
-      %i[dependencies functions constants].each do |attr|
+      %i[dependencies functions constants scripts].each do |attr|
         define_method "#{attr}=" do |value|
           instance_variable_set :"@#{attr}", value
         end
@@ -42,9 +42,20 @@ module Jass
       def constant(name, value)
         self.constants = constants + [Constant.new(name, value)]
       end
+      
+      def script(code)
+        self.scripts = scripts + [Script.new(code)]
+      end
 
       def generate_code
         <<~JS
+        
+          class JassRuntimeError extends Error {
+            constructor(message) {
+              super(message);
+              this.name = "JassRuntimeError";
+            }
+          }
 /*
           function __jass_handle_error(error) {
             var errInfo = {};
@@ -57,7 +68,7 @@ module Jass
             process.stdout.write(`${JSON.stringify(['err', errInfo])}\\n`);
           }
 */          
-          function __jass_render_exception(e) {
+          function __jass_render_error(e) {
             let errInfo = {};
             if (e instanceof Error) {
               errInfo.name = e.name;
@@ -68,14 +79,14 @@ module Jass
             return JSON.stringify({ error: errInfo });
           }
 
-          function __jass_render_error(error) {
+          /*function __jass_render_error(error) {
             let errInfo = { name: error || 'RUNTIME_ERROR' }
             return JSON.stringify({ error: errInfo });
-          }
+          }*/
 
           function __jass_respond_with_error(res, code, name) {
             res.statusCode = code;
-            __jass_log.log(`Error ${code} ${name}`);
+            __jass_log(`Error ${code} ${name}`);
             res.end(__jass_render_error(name));
           }
           
@@ -83,6 +94,7 @@ module Jass
             //appendFileSync('jass.log', `${message}\\n`);
           }
           
+          // TODO: prefix internal identifiers
           const http = require('http');
           const path = require('path');
           const fs = require('fs');
@@ -92,6 +104,15 @@ module Jass
           
           try {
             #{dependencies.map(&:to_js).join}
+          } catch (e) {
+            // STDIN __jass_handle_error(e);
+            process.stderr.write(e.toString());
+            process.stderr.write(`\\n`);
+            process.exit(1);
+          }
+          
+          try {
+            #{scripts.map(&:to_js).join}
           } catch (e) {
             // STDIN __jass_handle_error(e);
             process.stderr.write(e.toString());
@@ -147,6 +168,7 @@ module Jass
                 return __jass_respond_with_error(res, 400, 'Bad Request');
               }
 
+              /*
               try {
                 result = __jass_methods[method].apply(null, input);
               } catch(error) {
@@ -156,6 +178,21 @@ module Jass
               res.statusCode = 200;
               res.end(JSON.stringify(result));
               console.log(`Completed 200 OK`);
+              
+              */
+              
+              try {
+                Promise.resolve(__jass_methods[method].apply(null, input)).then(function (result) {
+                  res.statusCode = 200;
+                  res.end(JSON.stringify(result));
+                  console.log(`Completed 200 OK`);
+                }).catch(function(error) {
+                  __jass_respond_with_error(res, 500, error);
+                });
+              } catch(error) {
+                return __jass_respond_with_error(res, 500, error);
+              }
+              
             });
           });
 
