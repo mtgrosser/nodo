@@ -1,6 +1,5 @@
 require 'set'
 require 'pathname'
-require 'open3'
 require 'json'
 require 'fileutils'
 require 'tmpdir'
@@ -102,7 +101,7 @@ module Jass
           
           function __jass_log(message) {
             // fs.appendFileSync('log/jass.log', `${message}\\n`);
-            console.log(message);
+            console.log(`[Jass] ${message}`);
           }
           
           // TODO: prefix internal identifiers
@@ -123,7 +122,7 @@ module Jass
             process.exit(1);
           }
           
-          process.stdout.write('Starting up... ');
+          process.stdout.write('[Jass] Starting up... \\n');
           
           #{constants.map(&:to_js).join}
           
@@ -140,6 +139,8 @@ module Jass
           }
           
           const server = http.createServer((req, res) => {
+            const start = performance.now();
+
             res.setHeader('Content-Type', 'application/json');
             __jass_log(`POST ${req.url}`);
   
@@ -170,7 +171,7 @@ module Jass
                 Promise.resolve(__jass_methods[method].apply(null, input)).then(function (result) {
                   res.statusCode = 200;
                   res.end(JSON.stringify(result));
-                  __jass_log(`Completed 200 OK`);
+                  __jass_log(`Completed 200 OK in ${(performance.now() - start).toFixed(2)}ms\\n`);
                 }).catch(function(error) {
                   __jass_respond_with_error(res, 500, error);
                 });
@@ -203,14 +204,10 @@ module Jass
 
       protected
 
-      def finalize(process_data, tmpdir)
+      def finalize(pid, tmpdir)
         proc do
-          stdin, stdout, stderr, process_thread = process_data
-          stdin.close
-          stdout.close
-          stderr.close
-          Process.kill(0, process_thread.pid)
-          process_thread.value
+          Process.kill(0, pid)
+          Process.wait(pid)
           FileUtils.remove_entry(tmpdir) if File.directory?(tmpdir)
         end
       end
@@ -233,17 +230,19 @@ module Jass
       tmpdir && tmpdir.join(SOCKET_NAME)
     end
     
+    def node_pid
+      @node_pid
+    end
+    
     def ensure_process_is_spawned
-      return if @node_process_thread
+      return if node_pid
       spawn_process
     end
 
     def spawn_process
       @tmpdir = Pathname.new(Dir.mktmpdir('jass'))
-      process_data = Open3.popen3(env, 'node', '-e', self.class.generate_code, '--', @tmpdir.to_s)
-      @node_stdin, @node_stdout, @node_stderr, @node_process_thread = process_data
-      #ensure_packages_are_initiated(*process_data)
-      ObjectSpace.define_finalizer(self, self.class.send(:finalize, process_data, @tmpdir))
+      @node_pid = Process.spawn(env, 'node', '-e', self.class.generate_code, '--', @tmpdir.to_s)
+      ObjectSpace.define_finalizer(self, self.class.send(:finalize, node_pid, tmpdir))
     end
     
     def wait_for_socket
@@ -253,17 +252,6 @@ module Jass
         sleep(0.2)
       end
     end
-
-    #def ensure_packages_are_initiated(stdin, stdout, stderr, process_thread)
-    #  input = stdout.gets
-    #  raise Jass::Error, "Failed to instantiate Node process:\n#{stderr.read}" if input.nil?
-    #  #unless input.include?('server ready')
-    #  #  stdout.close
-    #  #  stderr.close
-    #  #  process_thread.join
-    #  #  raise Jass::Error
-    #  #end
-    #end<
 
     def call_js_method(method, args)
       @mutex.synchronize do
