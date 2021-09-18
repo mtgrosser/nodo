@@ -5,12 +5,13 @@ require 'json'
 require 'fileutils'
 require 'tmpdir'
 
-require_relative 'core/version'
 require_relative 'errors'
+require_relative 'core/version'
+require_relative 'core/dependency'
+require_relative 'core/function'
+require_relative 'core/script'
+require_relative 'core/constant'
 require_relative 'core/client'
-require_relative 'dependency'
-require_relative 'function'
-require_relative 'constant'
 
 module Jass
   class << self
@@ -18,9 +19,17 @@ module Jass
   end
   
   class Core
+    SOCKET_NAME = 'jass.sock'
+    TIMEOUT = 5
+    
     attr_reader :root, :env, :tmpdir
     
     class << self
+      
+      def instance
+        @instance ||= new
+      end
+      
       %i[dependencies functions constants scripts].each do |attr|
         define_method "#{attr}=" do |value|
           instance_variable_set :"@#{attr}", value
@@ -92,7 +101,8 @@ module Jass
           }
           
           function __jass_log(message) {
-            fs.appendFileSync('log/jass.log', `${message}\\n`);
+            // fs.appendFileSync('log/jass.log', `${message}\\n`);
+            console.log(message);
           }
           
           // TODO: prefix internal identifiers
@@ -102,19 +112,10 @@ module Jass
           const performance = require('perf_hooks').performance;
           
           const tmpdir = process.argv[1];
-          const socket = path.join(tmpdir, 'jass.sock');
+          const socket = path.join(tmpdir, '#{SOCKET_NAME}');
           
           try {
             #{dependencies.map(&:to_js).join}
-          } catch (e) {
-            // STDIN __jass_handle_error(e);
-            process.stderr.write(e.toString());
-            process.stderr.write(`\\n`);
-            process.exit(1);
-          }
-          
-          try {
-            #{scripts.map(&:to_js).join}
           } catch (e) {
             // STDIN __jass_handle_error(e);
             process.stderr.write(e.toString());
@@ -128,6 +129,15 @@ module Jass
           
           const __jass_methods = {};
           #{functions.map(&:to_js).join}
+          
+          try {
+            #{scripts.map(&:to_js).join}
+          } catch (e) {
+            // STDIN __jass_handle_error(e);
+            process.stderr.write(e.toString());
+            process.stderr.write(`\\n`);
+            process.exit(1);
+          }
           
           const server = http.createServer((req, res) => {
             res.setHeader('Content-Type', 'application/json');
@@ -160,7 +170,7 @@ module Jass
                 Promise.resolve(__jass_methods[method].apply(null, input)).then(function (result) {
                   res.statusCode = 200;
                   res.end(JSON.stringify(result));
-                  console.log(`Completed 200 OK`);
+                  __jass_log(`Completed 200 OK`);
                 }).catch(function(error) {
                   __jass_respond_with_error(res, 500, error);
                 });
@@ -170,8 +180,8 @@ module Jass
               
             });
           });
-
-          server.maxConnections = 64;
+          
+          //server.maxConnections = 64;
           server.listen(socket, () => {
             __jass_log(`server ready, listening on ${socket} (max connections: ${server.maxConnections})\\n`);
           });
@@ -201,7 +211,6 @@ module Jass
           stderr.close
           Process.kill(0, process_thread.pid)
           process_thread.value
-          puts "FINALIZE!"
           FileUtils.remove_entry(tmpdir) if File.directory?(tmpdir)
         end
       end
@@ -211,6 +220,7 @@ module Jass
       @root = root || '.'
       @env = env || {}
       @env['NODE_PATH'] ||= root.to_s
+      @mutex = Mutex.new
     end
 
     def pid
@@ -218,6 +228,10 @@ module Jass
     end
 
     private
+    
+    def socket_path
+      tmpdir && tmpdir.join(SOCKET_NAME)
+    end
     
     def ensure_process_is_spawned
       return if @node_process_thread
@@ -228,40 +242,43 @@ module Jass
       @tmpdir = Pathname.new(Dir.mktmpdir('jass'))
       process_data = Open3.popen3(env, 'node', '-e', self.class.generate_code, '--', @tmpdir.to_s)
       @node_stdin, @node_stdout, @node_stderr, @node_process_thread = process_data
-      ensure_packages_are_initiated(*process_data)
+      #ensure_packages_are_initiated(*process_data)
       ObjectSpace.define_finalizer(self, self.class.send(:finalize, process_data, @tmpdir))
     end
-
-    def ensure_packages_are_initiated(stdin, stdout, stderr, process_thread)
-      input = stdout.gets
-      raise Jass::Error, "Failed to instantiate Node process:\n#{stderr.read}" if input.nil?
-      #unless input.include?('server ready')
-      #  stdout.close
-      #  stderr.close
-      #  process_thread.join
-      #  raise Jass::Error
-      #end
+    
+    def wait_for_socket
+      start = Time.now
+      until socket_path.exist?
+        raise Jass::TimeoutError, "socket #{socket_path} not found" if Time.now - start > TIMEOUT
+        sleep(0.2)
+      end
     end
 
+    #def ensure_packages_are_initiated(stdin, stdout, stderr, process_thread)
+    #  input = stdout.gets
+    #  raise Jass::Error, "Failed to instantiate Node process:\n#{stderr.read}" if input.nil?
+    #  #unless input.include?('server ready')
+    #  #  stdout.close
+    #  #  stderr.close
+    #  #  process_thread.join
+    #  #  raise Jass::Error
+    #  #end
+    #end<
+
     def call_js_method(method, args)
-      ensure_process_is_spawned
+      @mutex.synchronize do
+        ensure_process_is_spawned
+        wait_for_socket
+      end
       request = Net::HTTP::Post.new("/#{method}")
       request.body = JSON.dump(args)
-      client = Client.new("unix://#{tmpdir.join('jass.sock')}")
+      client = Client.new("unix://#{socket_path}")
       response = client.request(request)
-    
-      if response.is_a?(Net::HTTPClientError)
-        raise Jass::Error
-      else
-        result = JSON.parse(response.body)
-        return result
-      end
+      raise Jass::Error if response.is_a?(Net::HTTPClientError) # TODO
+      JSON.parse(response.body)
     rescue Errno::EPIPE, IOError
       # TODO(bouk): restart or something? If this happens the process is completely broken
       raise Jass::Error, "Node process failed:\n#{@node_stderr.read}"
-    rescue Exception => e
-      puts e
-      raise e
     end
     
   end
