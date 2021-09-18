@@ -220,18 +220,14 @@ module Jass
       @mutex = Mutex.new
     end
 
-    def pid
-      @node_process_thread && @node_process_thread.pid
+    def node_pid
+      @node_pid
     end
 
     private
     
     def socket_path
       tmpdir && tmpdir.join(SOCKET_NAME)
-    end
-    
-    def node_pid
-      @node_pid
     end
     
     def ensure_process_is_spawned
