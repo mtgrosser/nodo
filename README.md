@@ -1,4 +1,4 @@
-[![Gem Version](https://badge.fury.io/rb/rszr.svg)](http://badge.fury.io/rb/jass-core)
+[![Gem Version](https://badge.fury.io/rb/jass-core.svg)](http://badge.fury.io/rb/jass-core)
 
 # Jass::Core – call Node.js from Ruby
 
