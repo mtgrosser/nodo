@@ -1,4 +1,4 @@
-[![Gem Version](https://badge.fury.io/rb/rszr.svg)](http://badge.fury.io/rb/jass-core)
+[![Gem Version](https://badge.fury.io/rb/jass-core.svg)](http://badge.fury.io/rb/jass-core)
 
 # Jass::Core – call Node.js from Ruby
 
@@ -67,7 +67,7 @@ end
 
 ### Setting NODE_PATH
 
-By default, `./node_mdoules` is used as the `NODE_PATH`.
+By default, `./node_modules` is used as the `NODE_PATH`.
 
 To set a custom path:
 ```ruby
