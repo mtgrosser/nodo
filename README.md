@@ -39,8 +39,10 @@ foo.say_hi('Jass')
 Install your modules to `node_modules`:
 
 ```shell
-yarn add uuid
+$ yarn add uuid
 ```
+
+Then `require` your dependencies:
 
 ```ruby
 class Bar < Jass::Core
