@@ -38,8 +38,10 @@ module Jass
         end
       end
       
-      def dependency(deps)
-        self.dependencies = dependencies + deps.map { |name, package| Dependency.new(name, package) }
+      def require(*mods)
+        deps = mods.last.is_a?(Hash) ? mods.pop : {}
+        mods = mods.map { |m| [m, m] }.to_h
+        self.dependencies = dependencies + mods.merge(deps).map { |name, package| Dependency.new(name, package) }
       end
 
       def function(name, code)
@@ -47,7 +49,7 @@ module Jass
         define_method(name) { |*args| call_js_method(name, args) }
       end
       
-      def constant(name, value)
+      def const(name, value)
         self.constants = constants + [Constant.new(name, value)]
       end
       
@@ -214,7 +216,7 @@ module Jass
     end
 
     def initialize(root = Jass.modules_root, env = {})
-      @root = root || '.'
+      @root = root || './node_modules'
       @env = env || {}
       @env['NODE_PATH'] ||= root.to_s
       @mutex = Mutex.new
