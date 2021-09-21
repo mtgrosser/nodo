@@ -67,7 +67,7 @@ end
 
 ### Setting NODE_PATH
 
-By default, `./node_mdoules` is used as the `NODE_PATH`.
+By default, `./node_modules` is used as the `NODE_PATH`.
 
 To set a custom path:
 ```ruby
