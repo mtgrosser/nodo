@@ -1,4 +1,3 @@
-require 'set'
 require 'pathname'
 require 'json'
 require 'fileutils'
@@ -59,25 +58,7 @@ module Jass
 
       def generate_code
         <<~JS
-        
-          class JassRuntimeError extends Error {
-            constructor(message) {
-              super(message);
-              this.name = "JassRuntimeError";
-            }
-          }
-/*
-          function __jass_handle_error(error) {
-            var errInfo = {};
-            if (error instanceof Error) {
-              errInfo.name = error.name;
-              Object.getOwnPropertyNames(error).reduce((obj, prop) => { obj[prop] = error[prop]; return obj }, errInfo);
-            } else {
-              errInfo.name = error.toString();
-            }
-            process.stdout.write(`${JSON.stringify(['err', errInfo])}\\n`);
-          }
-*/          
+          
           function __jass_render_error(e) {
             let errInfo = {};
             if (e instanceof Error) {
@@ -88,12 +69,7 @@ module Jass
             }
             return JSON.stringify({ error: errInfo });
           }
-
-          /*function __jass_render_error(error) {
-            let errInfo = { name: error || 'RUNTIME_ERROR' }
-            return JSON.stringify({ error: errInfo });
-          }*/
-
+          
           function __jass_respond_with_error(res, code, name) {
             res.statusCode = code;
             const rendered = __jass_render_error(name);
@@ -102,29 +78,28 @@ module Jass
           }
           
           function __jass_log(message) {
-            // fs.appendFileSync('log/jass.log', `${message}\\n`);
-            console.log(`[Jass] ${message}`);
+            // __jass_fs.appendFileSync('log/jass.log', `${message}\\n`);
+            // console.log(`[Jass] ${message}`);
           }
           
           // TODO: prefix internal identifiers
-          const http = require('http');
-          const path = require('path');
-          const fs = require('fs');
-          const performance = require('perf_hooks').performance;
+          const __jass_http = require('http');
+          const __jass_path = require('path');
+          const __jass_fs = require('fs');
+          const __jass_performance = require('perf_hooks').performance;
           
-          const tmpdir = process.argv[1];
-          const socket = path.join(tmpdir, '#{SOCKET_NAME}');
+          const __jass_tmpdir = process.argv[1];
+          const __jass_socket = __jass_path.join(__jass_tmpdir, '#{SOCKET_NAME}');
           
           try {
             #{dependencies.map(&:to_js).join}
           } catch (e) {
-            // STDIN __jass_handle_error(e);
             process.stderr.write(e.toString());
             process.stderr.write(`\\n`);
             process.exit(1);
           }
           
-          process.stdout.write('[Jass] Starting up... \\n');
+          __jass_log('[Jass] Starting up... \\n');
           
           #{constants.map(&:to_js).join}
           
@@ -134,14 +109,13 @@ module Jass
           try {
             #{scripts.map(&:to_js).join}
           } catch (e) {
-            // STDIN __jass_handle_error(e);
             process.stderr.write(e.toString());
             process.stderr.write(`\\n`);
             process.exit(1);
           }
           
-          const server = http.createServer((req, res) => {
-            const start = performance.now();
+          const __jass_server = __jass_http.createServer((req, res) => {
+            const start = __jass_performance.now();
 
             res.setHeader('Content-Type', 'application/json');
             __jass_log(`POST ${req.url}`);
@@ -173,7 +147,7 @@ module Jass
                 Promise.resolve(__jass_methods[method].apply(null, input)).then(function (result) {
                   res.statusCode = 200;
                   res.end(JSON.stringify(result));
-                  __jass_log(`Completed 200 OK in ${(performance.now() - start).toFixed(2)}ms\\n`);
+                  __jass_log(`Completed 200 OK in ${(__jass_performance.now() - start).toFixed(2)}ms\\n`);
                 }).catch(function(error) {
                   __jass_respond_with_error(res, 500, error);
                 });
@@ -185,8 +159,8 @@ module Jass
           });
           
           //server.maxConnections = 64;
-          server.listen(socket, () => {
-            __jass_log(`server ready, listening on ${socket} (max connections: ${server.maxConnections})\\n`);
+          __jass_server.listen(__jass_socket, () => {
+            __jass_log(`server ready, listening on ${__jass_socket} (max connections: ${__jass_server.maxConnections})\\n`);
           });
 
           let closing;
@@ -195,7 +169,7 @@ module Jass
             __jass_log("Shutting down\\n");
             if (!closing) {
               closing = true;
-              server.close(() => { process.exit(0) });
+              __jass_server.close(() => { process.exit(0) });
             }
           };
 
@@ -208,7 +182,7 @@ module Jass
 
       def finalize(pid, tmpdir)
         proc do
-          Process.kill(0, pid)
+          Process.kill(:SIGTERM, pid)
           Process.wait(pid)
           FileUtils.remove_entry(tmpdir) if File.directory?(tmpdir)
         end
@@ -256,7 +230,7 @@ module Jass
         ensure_process_is_spawned
         wait_for_socket
       end
-      request = Net::HTTP::Post.new("/#{method}")
+      request = Net::HTTP::Post.new("/#{method}", 'Content-Type': 'application/json')
       request.body = JSON.dump(args)
       client = Client.new("unix://#{socket_path}")
       response = client.request(request)
