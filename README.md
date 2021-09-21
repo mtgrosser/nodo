@@ -72,10 +72,11 @@ By default, `./node_modules` is used as the `NODE_PATH`.
 To set a custom path:
 ```ruby
 Jass.modules_root = 'path/to/node_modules'
+
+# For Rails
+# config/initializers/jass.rb
+Jass.modules_root = Rails.root.join('vendor', 'node_modules')
 ```
-
-In Rails applications, it will be automatically set to `Rails.root.join('vendor', 'node_modules')`.
-
 The modules root can also be given during instantiation of the class:
 
 ```ruby
