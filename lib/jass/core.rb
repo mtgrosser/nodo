@@ -74,7 +74,7 @@ module Jass
             res.statusCode = code;
             const rendered = __jass_render_error(name);
             __jass_log(`Error ${code} ${rendered}`);
-            res.end(rendered);
+            res.end(rendered, 'utf8');
           }
           
           function __jass_log(message) {
@@ -146,7 +146,7 @@ module Jass
               try {
                 Promise.resolve(__jass_methods[method].apply(null, input)).then(function (result) {
                   res.statusCode = 200;
-                  res.end(JSON.stringify(result));
+                  res.end(JSON.stringify(result), 'utf8');
                   __jass_log(`Completed 200 OK in ${(__jass_performance.now() - start).toFixed(2)}ms\\n`);
                 }).catch(function(error) {
                   __jass_respond_with_error(res, 500, error);
@@ -235,7 +235,7 @@ module Jass
       client = Client.new("unix://#{socket_path}")
       response = client.request(request)
       raise Jass::Error if response.is_a?(Net::HTTPClientError) # TODO
-      JSON.parse(response.body)
+      JSON.parse(response.body.force_encoding('UTF-8'))
     rescue Errno::EPIPE, IOError
       # TODO(bouk): restart or something? If this happens the process is completely broken
       raise Jass::Error, "Node process failed:\n#{@node_stderr.read}"
