@@ -1,25 +1,43 @@
-[![Gem Version](https://badge.fury.io/rb/jass-core.svg)](http://badge.fury.io/rb/jass-core)
+[![Gem Version](https://badge.fury.io/rb/nodo.svg)](http://badge.fury.io/rb/nodo)
 
-# Jass::Core – call Node.js from Ruby
+# Nōdo – call Node.js from Ruby
 
-Jass::Core provides a Ruby environment to call JavaScript running inside a Node process.
+`Nodo` provides a Ruby environment to interact with JavaScript running inside a Node process.
+ノード means "node" in Japanese.
+
+## Why Nodo?
+
+Nodo will dispatch all JS function calls to a single long-running Node process.
+
+JavaScript code is run in a namespaced environment, where you can access your initialized
+JS objects during sequential function calls without having to re-initialize them.
+
+IPC is done via unix sockets, greatly improving performance over classic process/eval solutions.
 
 ## Installation
 
 In your Gemfile:
 
 ```ruby
-gem 'jass-core'
+gem 'nodo'
 ```
 
 ### Node.js
 
-Jass requires a working installation of Node.js.
+Nodo requires a working installation of Node.js.
+
+If the executable is located in your `PATH`, no configuration is required. Otherwise, the path to to binary can be set using:
+
+```ruby
+Nodo.binary = '/usr/local/bin/node'
+```
 
 ## Usage
 
+In Nodo, you define JS functions as you would define Ruby methods:
+
 ```ruby
-class Foo < Jass::Core
+class Foo < Nodo::Core
   
   function :say_hi, <<~JS
     (name) => {
@@ -30,8 +48,8 @@ class Foo < Jass::Core
 end
 
 foo = Foo.new
-foo.say_hi('Jass')
-=> "Hello Jass!"
+foo.say_hi('Nodo')
+=> "Hello Nodo!"
 ```
 
 ### Using npm modules
@@ -45,7 +63,7 @@ $ yarn add uuid
 Then `require` your dependencies:
 
 ```ruby
-class Bar < Jass::Core
+class Bar < Nodo::Core
   require :uuid
 
   function :v4, <<~JS
@@ -56,13 +74,13 @@ class Bar < Jass::Core
 end
 
 bar = Bar.new
-bar.v4 => '"b305f5c4-db9a-4504-b0c3-4e097a5ec8b9"
+bar.v4 => "b305f5c4-db9a-4504-b0c3-4e097a5ec8b9"
 ```
 
 ### Aliasing requires
 
 ```ruby
-class FooBar < Jass::Core
+class FooBar < Nodo::Core
   require commonjs: '@rollup/plugin-commonjs'
 end
 ```
@@ -73,20 +91,21 @@ By default, `./node_modules` is used as the `NODE_PATH`.
 
 To set a custom path:
 ```ruby
-Jass.modules_root = 'path/to/node_modules'
+Nodo.modules_root = 'path/to/node_modules'
 ```
 
-For Rails:
+For Rails applications, it will be set to `vendor/node_modules`. 
+To use the Rails 6 default of putting `node_modules` to `RAILS_ROOT`:
 
 ```ruby
-# config/initializers/jass.rb
-Jass.modules_root = Rails.root.join('vendor', 'node_modules')
+# config/initializers/nodo.rb
+Nodo.modules_root = Rails.root.join('node_modules')
 ```
 
 ### Defining JS constants
 
 ```ruby
-class BarFoo < Jass::Core
+class BarFoo < Nodo::Core
   const :HELLO, "World"
 end
 ```
@@ -94,7 +113,7 @@ end
 ### Execute some custom JS during initialization
 
 ```ruby
-class BarFoo < Jass::Core
+class BarFoo < Nodo::Core
 
   script <<~JS
     // some custom JS
@@ -102,3 +121,7 @@ class BarFoo < Jass::Core
   JS
 end
 ```
+
+### Inheritance
+
+Subclasses will inherit functions, constants, dependencies and scripts from their superclasses, while only functions can be overwritten.

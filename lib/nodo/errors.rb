@@ -1,4 +1,4 @@
-module Jass
+module Nodo
   class Error < StandardError; end
   class TimeoutError < Error; end
   class CallError < Error; end
@@ -6,9 +6,10 @@ module Jass
   class JavaScriptError < Error
     attr_reader :attributes
     
-    def initialize(attributes = {})
+    def initialize(attributes = {}, function = nil)
       @attributes = attributes || {}
       if backtrace = generate_backtrace(attributes['stack'])
+        backtrace.unshift function.source_location if function && function.source_location
         set_backtrace backtrace
       end
       @message = generate_message

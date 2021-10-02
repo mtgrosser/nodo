@@ -7,4 +7,4 @@ Bundler.require(:default)
 require 'byebug'
 require 'minitest/autorun'
 
-require 'jass-core'
+require 'nodo'

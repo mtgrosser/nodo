@@ -1,10 +1,10 @@
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'jass/core/version'
+require 'nodo/version'
 
 Gem::Specification.new do |s|
-  s.name          = 'jass-core'
-  s.version       = Jass::Core::VERSION
+  s.name          = 'nodo'
+  s.version       = Nodo::VERSION
   s.date          = '2021-10-02'
   s.authors       = ['Matthias Grosser']
   s.email         = ['mtgrosser@gmx.net']
@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
 
   s.summary       = 'Call Node.js from Ruby'
   s.description   = 'Fast Ruby bridge to run JavaScript inside a Node process'
-  s.homepage      = 'https://github.com/mtgrosser/jass-core'
+  s.homepage      = 'https://github.com/mtgrosser/nodo'
 
   s.files = ['LICENSE', 'README.md'] + Dir['lib/**/*.rb']
   

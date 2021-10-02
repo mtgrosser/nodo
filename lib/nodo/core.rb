@@ -1,27 +1,11 @@
-require 'pathname'
-require 'json'
-require 'fileutils'
-require 'tmpdir'
-
-require_relative 'errors'
-require_relative 'core/version'
-require_relative 'core/dependency'
-require_relative 'core/function'
-require_relative 'core/script'
-require_relative 'core/constant'
-require_relative 'core/client'
-
-module Jass
-  class << self
-    attr_accessor :modules_root, :env
-  end
-  self.modules_root = './node_modules'
-  self.env = {}
-  
+module Nodo
   class Core
-    SOCKET_NAME = 'jass.sock'
-    DEFINE_METHOD = '__jass_define_class__'
+    SOCKET_NAME = 'nodo.sock'
+    DEFINE_METHOD = '__nodo_define_class__'
     TIMEOUT = 5
+    ARRAY_CLASS_ATTRIBUTES = %i[dependencies constants scripts].freeze
+    HASH_CLASS_ATTRIBUTES = %i[functions].freeze
+    CLASS_ATTRIBUTES = (ARRAY_CLASS_ATTRIBUTES + HASH_CLASS_ATTRIBUTES).freeze
     
     @@node_pid = nil
     @@tmpdir = nil
@@ -31,6 +15,12 @@ module Jass
       
       attr_accessor :class_defined
       
+      def inherited(subclass)
+        CLASS_ATTRIBUTES.each do |attr|
+          subclass.send "#{attr}=", send(attr).dup
+        end
+      end
+
       def instance
         @instance ||= new
       end
@@ -43,12 +33,21 @@ module Jass
         name || "Class:0x#{object_id.to_s(0x10)}"
       end
       
-      %i[dependencies functions constants scripts].each do |attr|
+      CLASS_ATTRIBUTES.each do |attr|
         define_method "#{attr}=" do |value|
           instance_variable_set :"@#{attr}", value
         end
+      end
+      
+      ARRAY_CLASS_ATTRIBUTES.each do |attr|
         define_method "#{attr}" do
           instance_variable_get(:"@#{attr}") || instance_variable_set(:"@#{attr}", [])
+        end
+      end
+      
+      HASH_CLASS_ATTRIBUTES.each do |attr|
+        define_method "#{attr}" do
+          instance_variable_get(:"@#{attr}") || instance_variable_set(:"@#{attr}", {})
         end
       end
       
@@ -59,7 +58,7 @@ module Jass
       end
 
       def function(name, code)
-        self.functions = functions + [Function.new(name, code)]
+        self.functions = functions.merge(name => Function.new(name, code, caller.first))
         define_method(name) { |*args| call_js_method(name, args) }
       end
       
@@ -73,7 +72,7 @@ module Jass
 
       def generate_core_code
         <<~JS
-          global.jass = require(#{jass_js})
+          global.nodo = require(#{nodo_js})
           
           const socket = process.argv[1];
           if (!socket) {
@@ -82,26 +81,26 @@ module Jass
           }
           
           const shutdown = () => {
-            jass.core.close(() => { process.exit(0) });
+            nodo.core.close(() => { process.exit(0) });
           };
 
           process.on('SIGINT', shutdown);
           process.on('SIGTERM', shutdown);
 
-          jass.core.run(socket);
+          nodo.core.run(socket);
         JS
       end
 
       def generate_class_code
         <<~JS
           (() => {
-            const __jass_log = jass.log;
-            const __jass_klass__ = {};
+            const __nodo_log = nodo.log;
+            const __nodo_klass__ = {};
             #{dependencies.map(&:to_js).join}
             #{constants.map(&:to_js).join}
-            #{functions.map(&:to_js).join}
+            #{functions.values.map(&:to_js).join}
             #{scripts.map(&:to_js).join}
-            return __jass_klass__;
+            return __nodo_klass__;
           })()
         JS
       end
@@ -118,8 +117,8 @@ module Jass
       
       private
       
-      def jass_js
-        Pathname.new(__FILE__).dirname.join('jass.js').to_s.to_json
+      def nodo_js
+        Pathname.new(__FILE__).dirname.join('nodo.js').to_s.to_json
       end
     end
     
@@ -161,9 +160,9 @@ module Jass
     end
 
     def spawn_process
-      @@tmpdir = Pathname.new(Dir.mktmpdir('jass'))
-      env = Jass.env.merge('NODE_PATH' => Jass.modules_root.to_s)
-      @@node_pid = Process.spawn(env, 'node', '-e', self.class.generate_core_code, '--', socket_path.to_s)
+      @@tmpdir = Pathname.new(Dir.mktmpdir('nodo'))
+      env = Nodo.env.merge('NODE_PATH' => Nodo.modules_root.to_s)
+      @@node_pid = Process.spawn(env, Nodo.binary, '-e', self.class.generate_core_code, '--', socket_path.to_s)
       ObjectSpace.define_finalizer(self, self.class.send(:finalize, node_pid, tmpdir))
     end
     
@@ -178,15 +177,32 @@ module Jass
     def call_js_method(method, args)
       raise CallError, 'Node process not ready' unless node_pid
       raise CallError, "Class #{clsid} not defined" unless self.class.class_defined? || method == DEFINE_METHOD
+      function = self.class.functions[method]
+      raise NameError, "undefined function `#{method}' for #{self.class}" unless function || method == DEFINE_METHOD
       request = Net::HTTP::Post.new("/#{clsid}/#{method}", 'Content-Type': 'application/json')
       request.body = JSON.dump(args)
       client = Client.new("unix://#{socket_path}")
       response = client.request(request)
-      raise Error if response.is_a?(Net::HTTPClientError) # TODO
-      JSON.parse(response.body.force_encoding('UTF-8'))
+      if response.is_a?(Net::HTTPOK)
+        parse_response(response)
+      else
+        handle_error(response, function)
+      end
     rescue Errno::EPIPE, IOError
-      # TODO(bouk): restart or something? If this happens the process is completely broken
+      # TODO: restart or something? If this happens the process is completely broken
       raise Error, 'Node process failed'
+    end
+    
+    def handle_error(response, function)
+      if response.body
+        result = parse_response(response)
+        raise JavaScriptError.new(result['error'], function) if result.is_a?(Hash) && result.key?('error')
+      end
+      raise CallError, "Node returned #{response.code}"
+    end
+    
+    def parse_response(response)
+      JSON.parse(response.body.force_encoding('UTF-8'))
     end
     
   end
