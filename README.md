@@ -82,11 +82,6 @@ For Rails:
 # config/initializers/jass.rb
 Jass.modules_root = Rails.root.join('vendor', 'node_modules')
 ```
-The modules root can also be given during instantiation of the class:
-
-```ruby
-foo = Foo.new('path/to/node_modules')
-```
 
 ### Defining JS constants
 
