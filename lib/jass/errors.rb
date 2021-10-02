@@ -1,6 +1,7 @@
 module Jass
   class Error < StandardError; end
   class TimeoutError < Error; end
+  class CallError < Error; end
   
   class JavaScriptError < Error
     attr_reader :attributes

@@ -5,12 +5,13 @@ require 'jass/core/version'
 Gem::Specification.new do |s|
   s.name          = 'jass-core'
   s.version       = Jass::Core::VERSION
-  s.date          = '2021-09-21'
+  s.date          = '2021-10-02'
   s.authors       = ['Matthias Grosser']
   s.email         = ['mtgrosser@gmx.net']
   s.license       = 'MIT'
 
-  s.summary       = 'Call node.js from Ruby'
+  s.summary       = 'Call Node.js from Ruby'
+  s.description   = 'Fast Ruby bridge to run JavaScript inside a Node process'
   s.homepage      = 'https://github.com/mtgrosser/jass-core'
 
   s.files = ['LICENSE', 'README.md'] + Dir['lib/**/*.rb']

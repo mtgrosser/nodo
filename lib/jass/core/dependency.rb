@@ -6,6 +6,6 @@ class Jass::Core::Dependency
   end
   
   def to_js
-    "var #{name} = require(#{package.to_json});\n"
+    "const #{name} = require(#{package.to_json});\n"
   end
 end

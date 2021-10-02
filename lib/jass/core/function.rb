@@ -6,6 +6,6 @@ class Jass::Core::Function
   end
   
   def to_js
-    "var #{name} = __jass_methods[#{name.to_json}] = (#{code});\n"
+    "const #{name} = __jass_klass__.#{name} = (#{code});\n"
   end
 end
