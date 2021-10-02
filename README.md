@@ -117,8 +117,9 @@ end
 class BarFoo < Nodo::Core
 
   script <<~JS
-    // some custom JS
-    // to be executed during initialization
+    // custom JS to be executed during initialization
+    // things defined here can later be used inside functions
+    const bigThing = someLib.init();
   JS
 end
 ```
@@ -126,3 +127,34 @@ end
 ### Inheritance
 
 Subclasses will inherit functions, constants, dependencies and scripts from their superclasses, while only functions can be overwritten.
+
+```ruby
+class Foo < Nodo::Core
+  function :foo, "() => 'superclass'"
+end
+
+class SubFoo < Nodo::Core
+  function :bar, "() => { return 'calling' + foo() }"
+end
+
+class SubSubFoo < Nodo::Core
+  function :foo, "() => 'subsubclass'"
+end
+
+Foo.new.foo => "superclass"
+SubFoo.new.bar => "callingsuperclass"
+SubSubFoo.new.bar => "callingsubsubclass"
+```
+
+### Async functions
+
+`Nodo` supports calling `async` functions from Ruby. 
+The Ruby call will happen synchronously, i.e. it will block until the JS function resolves:
+
+```ruby
+class SyncFoo < Nodo::Core
+  function :do_something, <<~JS
+    async () => { return await asyncFunc(); }
+  JS
+end
+```
