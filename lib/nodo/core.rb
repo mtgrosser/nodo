@@ -72,7 +72,7 @@ module Nodo
 
       def generate_core_code
         <<~JS
-          global.nodo = require(#{nodo_js})
+          global.nodo = require(#{nodo_js});
           
           const socket = process.argv[1];
           if (!socket) {
