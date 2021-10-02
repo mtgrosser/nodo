@@ -133,11 +133,11 @@ class Foo < Nodo::Core
   function :foo, "() => 'superclass'"
 end
 
-class SubFoo < Nodo::Core
+class SubFoo < Foo
   function :bar, "() => { return 'calling' + foo() }"
 end
 
-class SubSubFoo < Nodo::Core
+class SubSubFoo < SubFoo
   function :foo, "() => 'subsubclass'"
 end
 
