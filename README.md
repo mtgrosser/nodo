@@ -61,7 +61,7 @@ Install your modules to `node_modules`:
 $ yarn add uuid
 ```
 
-Then `require` your dependencies:
+`require`ing your dependencies will make the library available as a `const` with the same name:
 
 ```ruby
 class Bar < Nodo::Core
@@ -76,9 +76,8 @@ end
 
 bar = Bar.new
 bar.v4 => "b305f5c4-db9a-4504-b0c3-4e097a5ec8b9"
-
-The required library will be available as a `const` with the same name.
 ```
+
 
 ### Aliasing requires
 
