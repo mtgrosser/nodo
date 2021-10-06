@@ -72,4 +72,34 @@ class NodoTest < Minitest::Test
     end
     assert_equal 'world', nodo.hello
   end
+  
+  def test_syntax
+    nodo = Class.new(Nodo::Core) do
+      function :test, timeout: nil, code: <<~'JS'
+        () => [1, 2, 3]
+      JS
+    end
+    assert_equal [1, 2, 3], nodo.new.test
+  end
+  
+  def test_code_is_required
+    assert_raises ArgumentError do
+      Class.new(Nodo::Core) do
+        function :test, code: <<~'JS'
+        JS
+      end
+    end
+  end
+  
+  def test_timeout
+    nodo = Class.new(Nodo::Core) do
+      function :sleep, timeout: 1, code: <<~'JS'
+        async (sec) => await new Promise(resolve => setTimeout(resolve, sec * 1000))
+      JS
+    end
+    assert_raises Nodo::TimeoutError do
+      nodo.new.sleep(2)
+    end
+  end
+  
 end

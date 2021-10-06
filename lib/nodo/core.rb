@@ -62,8 +62,10 @@ module Nodo
         self.dependencies = dependencies + mods.merge(deps).map { |name, package| Dependency.new(name, package) }
       end
 
-      def function(name, code)
-        self.functions = functions.merge(name => Function.new(name, code, caller.first))
+      def function(name, _code = nil, timeout: 60, code: nil)
+        code = (code ||= _code).strip
+        raise ArgumentError, 'function code is required' if '' == code
+        self.functions = functions.merge(name => Function.new(name, _code || code, caller.first, timeout))
         define_method(name) { |*args| call_js_method(name, args) }
       end
       
@@ -187,12 +189,15 @@ module Nodo
       request = Net::HTTP::Post.new("/#{clsid}/#{method}", 'Content-Type': 'application/json')
       request.body = JSON.dump(args)
       client = Client.new("unix://#{socket_path}")
+      client.read_timeout = function.timeout if function
       response = client.request(request)
       if response.is_a?(Net::HTTPOK)
         parse_response(response)
       else
         handle_error(response, function)
       end
+    rescue Net::ReadTimeout
+      raise TimeoutError, "function call #{self.class}##{method} timed out"
     rescue Errno::EPIPE, IOError
       # TODO: restart or something? If this happens the process is completely broken
       raise Error, 'Node process failed'
@@ -207,7 +212,8 @@ module Nodo
     end
     
     def parse_response(response)
-      JSON.parse(response.body.force_encoding('UTF-8'))
+      data = response.body.force_encoding('UTF-8')
+      JSON.parse(data) unless data == ''
     end
     
     def with_tempfile(name)

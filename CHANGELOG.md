@@ -1,6 +1,9 @@
 ## 1.5.4
 
-- Class method forwarding
+- class method forwarding
+- per-function call timeout
+- alternative function definition syntax
+- return nil on undefined return value
 
 ## 15.3
 
