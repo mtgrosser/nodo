@@ -168,6 +168,7 @@ module Nodo
     def wait_for_socket
       start = Time.now
       until socket_path.exist?
+        puts "WAIT #{self.class}"
         raise TimeoutError, "socket #{socket_path} not found" if Time.now - start > TIMEOUT
         sleep(0.2)
       end
