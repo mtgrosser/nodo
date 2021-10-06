@@ -109,8 +109,8 @@ module Nodo
 
       def finalize(pid, tmpdir)
         proc do
-          Process.kill(:SIGTERM, pid)
-          Process.wait(pid)
+          Process.kill(:SIGTERM, pid) rescue Errno::ECHILD
+          Process.wait(pid) rescue Errno::ECHILD
           FileUtils.remove_entry(tmpdir) if File.directory?(tmpdir)
         end
       end
@@ -162,8 +162,8 @@ module Nodo
     def spawn_process
       @@tmpdir = Pathname.new(Dir.mktmpdir('nodo'))
       env = Nodo.env.merge('NODE_PATH' => Nodo.modules_root.to_s)
-      @@node_pid = Process.spawn(env, Nodo.binary, '-e', self.class.generate_core_code, '--', socket_path.to_s)
-      ObjectSpace.define_finalizer(self, self.class.send(:finalize, node_pid, tmpdir))
+      @@node_pid = Process.spawn(env, Nodo.binary, '-e', self.class.generate_core_code, '--', socket_path.to_s, err: :out)
+      ObjectSpace.define_finalizer(self, Core.send(:finalize, node_pid, tmpdir))
     end
     
     def wait_for_socket
