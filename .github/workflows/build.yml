@@ -22,7 +22,6 @@ jobs:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true
     - name: Install npm packages
-      uses: borales/actions-yarn@v2.3.0
       with:
-        cmd: install
-    - run: TMPDIR=/github/home bundle exec rake
+        cmd: yarn install
+    - run: TESTOPTS=--verbose bundle exec rake
