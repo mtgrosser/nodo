@@ -1,3 +1,7 @@
+## 1.5.4
+
+- Class method forwarding
+
 ## 15.3
 
 - Improve socket provisioning

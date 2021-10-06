@@ -64,4 +64,12 @@ class NodoTest < Minitest::Test
     assert_equal 'callingsuperclass', subclass.new.bar
     assert_equal 'callingsubsubclass', subsubclass.new.bar
   end
+  
+  def test_instance_function
+    nodo = Class.new(Nodo::Core) do
+      function :hello, "() => 'world'"
+      class_function :hello
+    end
+    assert_equal 'world', nodo.hello
+  end
 end

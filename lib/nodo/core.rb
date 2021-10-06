@@ -12,6 +12,8 @@ module Nodo
     @@mutex = Mutex.new
     
     class << self
+      extend Forwardable
+      
       attr_accessor :class_defined
       
       def inherited(subclass)
@@ -22,6 +24,10 @@ module Nodo
 
       def instance
         @instance ||= new
+      end
+      
+      def class_function(*methods)
+        singleton_class.def_delegators(:instance, *methods)
       end
       
       def class_defined?
