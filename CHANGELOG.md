@@ -1,3 +1,8 @@
+## 1.5.2
+
+- Clean process title
+- with_tempfile support
+
 ## 1.4.0
 
 - Use single Node process

@@ -12,7 +12,6 @@ module Nodo
     @@mutex = Mutex.new
     
     class << self
-      
       attr_accessor :class_defined
       
       def inherited(subclass)
@@ -79,6 +78,8 @@ module Nodo
             process.stderr.write('Socket path is required\\n');
             process.exit(1);
           }
+          
+          process.title = `nodo-core ${socket}`;
           
           const shutdown = () => {
             nodo.core.close(() => { process.exit(0) });
@@ -155,8 +156,6 @@ module Nodo
       return if self.class.class_defined?
       call_js_method(DEFINE_METHOD, self.class.generate_class_code)
       self.class.class_defined = true
-#    rescue => e
- #     raise Error, e.message
     end
 
     def spawn_process
@@ -203,6 +202,14 @@ module Nodo
     
     def parse_response(response)
       JSON.parse(response.body.force_encoding('UTF-8'))
+    end
+    
+    def with_tempfile(name)
+      result = nil
+      Tempfile.create([name, '.js'], tmpdir) do |file|
+        result = yield(file)
+      end
+      result
     end
     
   end

@@ -2,6 +2,7 @@ require 'pathname'
 require 'json'
 require 'fileutils'
 require 'tmpdir'
+require 'tempfile'
 
 module Nodo
   class << self
