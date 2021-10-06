@@ -28,10 +28,10 @@ module Nodo
 
     def connect_unix
       s = Timeout.timeout(@open_timeout) { UNIXSocket.open(@socket_path) }
-      @socket = Net::BufferedIO.new(s)
-      @socket.read_timeout = @read_timeout
-      @socket.continue_timeout = @continue_timeout
-      @socket.debug_output = @debug_output
+      @socket = Net::BufferedIO.new(s, read_timeout: @read_timeout,
+                                       write_timeout: @write_timeout,
+                                       continue_timeout: @continue_timeout,
+                                       debug_output: @debug_output)
       on_connect
     end
   end

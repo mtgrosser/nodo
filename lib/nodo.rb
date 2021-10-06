@@ -3,6 +3,7 @@ require 'json'
 require 'fileutils'
 require 'tmpdir'
 require 'tempfile'
+require 'socket'
 
 module Nodo
   class << self

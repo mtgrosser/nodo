@@ -157,7 +157,7 @@ module Nodo
       call_js_method(DEFINE_METHOD, self.class.generate_class_code)
       self.class.class_defined = true
     end
-
+    
     def spawn_process
       @@tmpdir = Pathname.new(Dir.mktmpdir('nodo'))
       env = Nodo.env.merge('NODE_PATH' => Nodo.modules_root.to_s)
@@ -167,11 +167,16 @@ module Nodo
     
     def wait_for_socket
       start = Time.now
-      until socket_path.exist?
-        puts "WAIT #{self.class}"
-        raise TimeoutError, "socket #{socket_path} not found" if Time.now - start > TIMEOUT
-        sleep(0.2)
+      socket = nil
+      while Time.now - start < TIMEOUT
+        begin
+          break if socket = UNIXSocket.new(socket_path)
+        rescue Errno::ENOENT, Errno::ECONNREFUSED, Errno::ENOTDIR
+          sleep 0.2
+        end
       end
+      socket.close if socket
+      raise TimeoutError, "could not connect to socket #{socket_path}" unless socket
     end
 
     def call_js_method(method, args)
