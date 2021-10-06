@@ -22,6 +22,5 @@ jobs:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true
     - name: Install npm packages
-      with:
-        cmd: yarn install
+      run: yarn install
     - run: TESTOPTS=--verbose bundle exec rake
