@@ -12,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: ['2.6', '2.7', '3.0']
-        node-version: ['12.x', '16.x']
+        ruby-version: ['3.0']
+        node-version: ['12.x', '14.x', '16.x']
 
     steps:
     - uses: actions/checkout@v2
