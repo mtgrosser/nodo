@@ -18,6 +18,15 @@ class NodoTest < Minitest::Test
     assert_equal false, nodo.instance.exists_file('FOOBARFOO')
   end
   
+  def test_require_npm
+    nodo = Class.new(Nodo::Core) do
+      require :uuid
+      function :v4, "() => uuid.v4()"
+    end
+    assert uuid = nodo.new.v4
+    assert_equal 36, uuid.size
+  end
+  
   def test_const
     nodo = Class.new(Nodo::Core) do
       const :FOOBAR, 123
