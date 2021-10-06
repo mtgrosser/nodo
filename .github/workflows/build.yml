@@ -29,6 +29,6 @@ jobs:
         cache: 'npm'
     - name: Install npm packages
       uses: borales/actions-yarn@v2.3.0
-        with:
+      with:
         cmd: install
     - run: bundle exec rake
