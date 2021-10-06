@@ -76,9 +76,14 @@ end
 
 bar = Bar.new
 bar.v4 => "b305f5c4-db9a-4504-b0c3-4e097a5ec8b9"
+
+The required library will be available as a `const` with the same name.
 ```
 
 ### Aliasing requires
+
+If the library name cannot be used as name of the constant, the `const` name
+can be given using hash syntax:
 
 ```ruby
 class FooBar < Nodo::Core
