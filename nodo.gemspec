@@ -5,7 +5,7 @@ require 'nodo/version'
 Gem::Specification.new do |s|
   s.name          = 'nodo'
   s.version       = Nodo::VERSION
-  s.date          = '2021-10-02'
+  s.date          = '2021-10-03'
   s.authors       = ['Matthias Grosser']
   s.email         = ['mtgrosser@gmx.net']
   s.license       = 'MIT'
@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.description   = 'Fast Ruby bridge to run JavaScript inside a Node process'
   s.homepage      = 'https://github.com/mtgrosser/nodo'
 
-  s.files = ['LICENSE', 'README.md'] + Dir['lib/**/*.rb']
+  s.files = ['LICENSE', 'README.md'] + Dir['lib/**/*.{rb,js}']
   
   s.required_ruby_version = '>= 2.3.0'
 
