@@ -1,4 +1,4 @@
-[![Gem Version](https://badge.fury.io/rb/nodo.svg)](http://badge.fury.io/rb/nodo)
+[![Gem Version](https://badge.fury.io/rb/nodo.svg)](http://badge.fury.io/rb/nodo)  [![build](https://github.com/mtgrosser/nodo/actions/workflows/build.yml/badge.svg)](https://github.com/mtgrosser/nodo/actions/workflows/build.yml)
 
 # Nōdo – call Node.js from Ruby
 
