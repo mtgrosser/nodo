@@ -1,3 +1,8 @@
+## 15.3
+
+- Improve socket provisioning
+- Improve shutdown
+
 ## 1.5.2
 
 - Clean process title

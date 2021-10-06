@@ -205,8 +205,9 @@ module Nodo
     end
     
     def with_tempfile(name)
+      ext = File.extname(name)
       result = nil
-      Tempfile.create([name, '.js'], tmpdir) do |file|
+      Tempfile.create([File.basename(name, ext), ext], tmpdir) do |file|
         result = yield(file)
       end
       result
