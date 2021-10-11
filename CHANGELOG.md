@@ -5,7 +5,7 @@
 - alternative function definition syntax
 - return nil on undefined return value
 
-## 15.3
+## 1.5.3
 
 - Improve socket provisioning
 - Improve shutdown
