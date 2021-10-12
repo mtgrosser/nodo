@@ -39,13 +39,13 @@ In Nodo, you define JS functions as you would define Ruby methods:
 
 ```ruby
 class Foo < Nodo::Core
-  
+
   function :say_hi, <<~JS
     (name) => {
       return `Hello ${name}!`;
     }
   JS
-  
+
 end
 
 foo = Foo.new
@@ -90,6 +90,14 @@ class FooBar < Nodo::Core
 end
 ```
 
+### Alternate function definition syntax
+
+JS code can also be supplied using the `code:` keyword argument:
+
+```ruby
+function :hello, code: "() => 'world'"
+```
+
 ### Setting NODE_PATH
 
 By default, `./node_modules` is used as the `NODE_PATH`.
@@ -130,7 +138,8 @@ end
 
 ### Inheritance
 
-Subclasses will inherit functions, constants, dependencies and scripts from their superclasses, while only functions can be overwritten.
+Subclasses will inherit functions, constants, dependencies and scripts from
+their superclasses, while only functions can be overwritten.
 
 ```ruby
 class Foo < Nodo::Core
@@ -153,7 +162,8 @@ SubSubFoo.new.bar => "callingsubsubclass"
 ### Async functions
 
 `Nodo` supports calling `async` functions from Ruby. 
-The Ruby call will happen synchronously, i.e. it will block until the JS function resolves:
+The Ruby call will happen synchronously, i.e. it will block until the JS
+function resolves:
 
 ```ruby
 class SyncFoo < Nodo::Core
@@ -161,4 +171,20 @@ class SyncFoo < Nodo::Core
     async () => { return await asyncFunc(); }
   JS
 end
+```
+
+### Limiting function execution time
+
+The default timeout for a single JS function call is 60 seconds due to the
+`Net::HTTP` default. It can be overridden on a per-function basis:
+
+```ruby
+class Foo < Nodo::Core
+  function :sleep, timeout: 1, code: <<~'JS'
+    async (sec) => await new Promise(resolve => setTimeout(resolve, sec * 1000))
+  JS
+end
+
+foo.new.sleep(2)
+=>  Nodo::TimeoutError raised
 ```

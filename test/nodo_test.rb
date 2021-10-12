@@ -102,4 +102,12 @@ class NodoTest < Minitest::Test
     end
   end
   
+  def test_internal_method_names_are_reserved
+    assert_raises ArgumentError do
+      Class.new(Nodo::Core) do
+        function :tmpdir, code: "() => '.'"
+      end
+    end
+  end
+  
 end

@@ -63,6 +63,7 @@ module Nodo
       end
 
       def function(name, _code = nil, timeout: 60, code: nil)
+        raise ArgumentError, "reserved method name #{name.inspect}" if Nodo::Core.method_defined?(name) 
         code = (code ||= _code).strip
         raise ArgumentError, 'function code is required' if '' == code
         self.functions = functions.merge(name => Function.new(name, _code || code, caller.first, timeout))
@@ -174,7 +175,7 @@ module Nodo
         begin
           break if socket = UNIXSocket.new(socket_path)
         rescue Errno::ENOENT, Errno::ECONNREFUSED, Errno::ENOTDIR
-          sleep 0.2
+          Kernel.sleep(0.2)
         end
       end
       socket.close if socket

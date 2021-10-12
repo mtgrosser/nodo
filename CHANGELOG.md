@@ -1,3 +1,7 @@
+## 1.5.5
+
+- Prevent overriding of internal methods
+
 ## 1.5.4
 
 - class method forwarding
