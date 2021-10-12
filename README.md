@@ -185,6 +185,6 @@ class Foo < Nodo::Core
   JS
 end
 
-foo.new.sleep(2)
+Foo.new.sleep(2)
 =>  Nodo::TimeoutError raised
 ```
