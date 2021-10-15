@@ -209,7 +209,7 @@ before instantiating any worker instances. The debug mode will be active during
 the current process run.
 
 
-#### Clean your Rails root
+### Clean your Rails root
 
 For Rails applications, Nodo enables you to move `node_modules`, `package.json` and
 `yarn.lock` into your application's `vendor` folder by setting the `NODE_PATH` in
