@@ -1,3 +1,8 @@
+## 1.6.0
+
+- use default `modules_root` for Rails applications
+- Add yarn task for vendored `modules_root`
+
 ## 1.5.6
 
 - Do not shutdown on SIGINT

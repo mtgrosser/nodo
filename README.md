@@ -1,4 +1,5 @@
-[![Gem Version](https://badge.fury.io/rb/nodo.svg)](http://badge.fury.io/rb/nodo)  [![build](https://github.com/mtgrosser/nodo/actions/workflows/build.yml/badge.svg)](https://github.com/mtgrosser/nodo/actions/workflows/build.yml)
+[![Gem Version](https://badge.fury.io/rb/nodo.svg)](http://badge.fury.io/rb/nodo)
+[![build](https://github.com/mtgrosser/nodo/actions/workflows/build.yml/badge.svg)](https://github.com/mtgrosser/nodo/actions/workflows/build.yml)
 
 # Nōdo – call Node.js from Ruby
 
@@ -107,7 +108,7 @@ To set a custom path:
 Nodo.modules_root = 'path/to/node_modules'
 ```
 
-
+Also see: [Clean your Rails root](#Clean-your-Rails-root)
 
 ### Defining JS constants
 
@@ -224,6 +225,5 @@ should not clutter the application root directory.
 
 With this new default, all `yarn` operations should be done after `cd`ing to `vendor`.
 
-This repo provides an adapted version of the `yarn:install` rake task which will
-automatically take care of the vendored module location.
-
+This repo provides an [adapted version](https://github.com/mtgrosser/nodo/blob/master/install/yarn.rake)
+of the `yarn:install` rake task which will automatically take care of the vendored module location.
