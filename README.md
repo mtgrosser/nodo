@@ -188,3 +188,26 @@ end
 Foo.new.sleep(2)
 =>  Nodo::TimeoutError raised
 ```
+
+### Logging
+
+By default, JS errors will be logged to `STDOUT`.
+
+To set a custom logger:
+
+```ruby
+Nodo.logger = Logger.new('nodo.log')
+```
+
+In Rails applications, `Rails.logger` will automatically be set.
+
+### Debugging
+
+To get verbose debug output, set
+
+```ruby
+Nodo.debug = true
+```
+
+before instantiating any worker instances. The debug mode will be active during
+the current process run.

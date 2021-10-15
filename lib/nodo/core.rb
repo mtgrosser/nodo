@@ -63,10 +63,12 @@ module Nodo
       end
 
       def function(name, _code = nil, timeout: 60, code: nil)
-        raise ArgumentError, "reserved method name #{name.inspect}" if Nodo::Core.method_defined?(name) 
+        raise ArgumentError, "reserved method name #{name.inspect}" if Nodo::Core.method_defined?(name) || name.to_s == DEFINE_METHOD
         code = (code ||= _code).strip
         raise ArgumentError, 'function code is required' if '' == code
-        self.functions = functions.merge(name => Function.new(name, _code || code, caller.first, timeout))
+        loc = caller_locations(1, 1)[0]
+        source_location = "#{loc.path}:#{loc.lineno}: in `#{name}'"
+        self.functions = functions.merge(name => Function.new(name, _code || code, source_location, timeout))
         define_method(name) { |*args| call_js_method(name, args) }
       end
       
@@ -94,7 +96,7 @@ module Nodo
             nodo.core.close(() => { process.exit(0) });
           };
 
-          process.on('SIGINT', shutdown);
+          // process.on('SIGINT', shutdown);
           process.on('SIGTERM', shutdown);
 
           nodo.core.run(socket);
@@ -146,6 +148,11 @@ module Nodo
       self.class.clsid
     end
     
+    def log_exception(e)
+      return unless logger = Nodo.logger
+      logger.error "\n#{e.class} (#{e.message}):\n\n#{e.backtrace.join("\n")}"
+    end
+    
     def ensure_process_is_spawned
       return if node_pid
       spawn_process
@@ -160,6 +167,7 @@ module Nodo
     def spawn_process
       @@tmpdir = Pathname.new(Dir.mktmpdir('nodo'))
       env = Nodo.env.merge('NODE_PATH' => Nodo.modules_root.to_s)
+      env['NODO_DEBUG'] = '1' if Nodo.debug
       @@node_pid = Process.spawn(env, Nodo.binary, '-e', self.class.generate_core_code, '--', socket_path.to_s, err: :out)
       at_exit do
         Process.kill(:SIGTERM, node_pid) rescue Errno::ECHILD
@@ -207,9 +215,11 @@ module Nodo
     def handle_error(response, function)
       if response.body
         result = parse_response(response)
-        raise JavaScriptError.new(result['error'], function) if result.is_a?(Hash) && result.key?('error')
+        error = JavaScriptError.new(result['error'], function) if result.is_a?(Hash) && result.key?('error')
       end
-      raise CallError, "Node returned #{response.code}"
+      error ||= CallError.new("Node returned #{response.code}")
+      log_exception(error)
+      raise error
     end
     
     def parse_response(response)

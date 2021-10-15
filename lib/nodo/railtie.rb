@@ -5,5 +5,6 @@ class Nodo::Railtie < Rails::Railtie
   initializer 'nodo' do |app|
     Nodo.modules_root = Rails.root.join('vendor', 'node_modules')
     Nodo.env['NODE_ENV'] = Rails.env.to_s
+    Nodo.logger = Rails.logger
   end
 end

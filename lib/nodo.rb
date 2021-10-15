@@ -3,16 +3,19 @@ require 'json'
 require 'fileutils'
 require 'tmpdir'
 require 'tempfile'
+require 'logger'
 require 'socket'
 require 'forwardable'
 
 module Nodo
   class << self
-    attr_accessor :modules_root, :env, :binary
+    attr_accessor :modules_root, :env, :binary, :logger, :debug
   end
   self.modules_root = './node_modules'
   self.env = {}
   self.binary = 'node'
+  self.logger = Logger.new(STDOUT)
+  self.debug  = false
 end
 
 require_relative 'nodo/version'

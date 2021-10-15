@@ -110,4 +110,20 @@ class NodoTest < Minitest::Test
     end
   end
   
+  def test_logging
+    prev_logger = Nodo.logger
+    Nodo.logger = Object.new.instance_exec do
+      def errors; @errors ||= []; end
+      def error(msg); errors << msg; end
+      self
+    end
+    assert_raises(Nodo::JavaScriptError) do
+      Class.new(Nodo::Core) { function :bork, code: "() => {;;;" }.new
+    end
+    assert_equal 1, Nodo.logger.errors.size
+    assert_match /Nodo::JavaScriptError/, Nodo.logger.errors.first
+  ensure
+    Nodo.logger = prev_logger
+  end
+
 end

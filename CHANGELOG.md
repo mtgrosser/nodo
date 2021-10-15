@@ -1,3 +1,9 @@
+## 1.5.6
+
+- Do not shutdown on SIGINT
+- Improve logging
+- Add debug switch
+
 ## 1.5.5
 
 - Prevent overriding of internal methods
