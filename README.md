@@ -107,13 +107,7 @@ To set a custom path:
 Nodo.modules_root = 'path/to/node_modules'
 ```
 
-For Rails applications, it will be set to `vendor/node_modules`. 
-To use the Rails 6 default of putting `node_modules` to `RAILS_ROOT`:
 
-```ruby
-# config/initializers/nodo.rb
-Nodo.modules_root = Rails.root.join('node_modules')
-```
 
 ### Defining JS constants
 
@@ -201,6 +195,7 @@ Nodo.logger = Logger.new('nodo.log')
 
 In Rails applications, `Rails.logger` will automatically be set.
 
+
 ### Debugging
 
 To get verbose debug output, set
@@ -211,3 +206,24 @@ Nodo.debug = true
 
 before instantiating any worker instances. The debug mode will be active during
 the current process run.
+
+
+#### Clean your Rails root
+
+For Rails applications, Nodo enables you to move `node_modules`, `package.json` and
+`yarn.lock` into your application's `vendor` folder by setting the `NODE_PATH` in
+an initializer:
+
+```ruby
+# config/initializers/nodo.rb
+Nodo.modules_root = Rails.root.join('vendor', 'node_modules')
+```
+
+The rationale behind this is NPM modules being external vendor dependencies, which
+should not clutter the application root directory.
+
+With this new default, all `yarn` operations should be done after `cd`ing to `vendor`.
+
+This repo provides an adapted version of the `yarn:install` rake task which will
+automatically take care of the vendored module location.
+
