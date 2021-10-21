@@ -125,5 +125,18 @@ class NodoTest < Minitest::Test
   ensure
     Nodo.logger = prev_logger
   end
+  
+  def test_dependency_error
+    prev_logger = Nodo.logger
+    Nodo.logger = nil
+    nodo = Class.new(Nodo::Core) do
+      require 'foobarfoo'
+    end
+    assert_raises Nodo::DependencyError do
+      nodo.new
+    end
+  ensure
+    Nodo.logger = prev_logger
+  end
 
 end

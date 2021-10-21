@@ -62,7 +62,7 @@ module Nodo
         self.dependencies = dependencies + mods.merge(deps).map { |name, package| Dependency.new(name, package) }
       end
 
-      def function(name, _code = nil, timeout: 60, code: nil)
+      def function(name, _code = nil, timeout: Nodo.timeout, code: nil)
         raise ArgumentError, "reserved method name #{name.inspect}" if Nodo::Core.method_defined?(name) || name.to_s == DEFINE_METHOD
         code = (code ||= _code).strip
         raise ArgumentError, 'function code is required' if '' == code
@@ -215,7 +215,10 @@ module Nodo
     def handle_error(response, function)
       if response.body
         result = parse_response(response)
-        error = JavaScriptError.new(result['error'], function) if result.is_a?(Hash) && result.key?('error')
+        error = if result.is_a?(Hash) && result['error'].is_a?(Hash)
+          attrs = result['error']
+          (attrs['nodo_dependency'] ? DependencyError : JavaScriptError).new(attrs, function)
+        end
       end
       error ||= CallError.new("Node returned #{response.code}")
       log_exception(error)

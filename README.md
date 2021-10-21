@@ -170,8 +170,17 @@ end
 
 ### Limiting function execution time
 
-The default timeout for a single JS function call is 60 seconds due to the
-`Net::HTTP` default. It can be overridden on a per-function basis:
+The default timeout for a single JS function call is 60 seconds and can be
+set globally:
+
+```ruby
+Nodo.timeout = 5
+```
+
+If the execution of a single function call exceeds the timeout, `Nodo::TimeoutError`
+is raised.
+
+The timeout can also be set on a per-function basis:
 
 ```ruby
 class Foo < Nodo::Core

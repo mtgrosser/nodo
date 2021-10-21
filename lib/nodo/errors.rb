@@ -38,12 +38,22 @@ module Nodo
     
     def generate_message
       message = "#{attributes['message'] || 'Unknown error'}"
-      if loc = attributes['loc']
-        message << loc.inject(' in') { |s, (key, value)| s << " #{key}: #{value}" }
-      end
-      message
+      message << format_location(attributes['loc'])
+    end
+    
+    def format_location(loc)
+      return '' unless loc
+      loc.inject(' in') { |s, (key, value)| s << " #{key}: #{value}" }
     end
   end
   
-  class DependencyError < JavaScriptError; end
+  class DependencyError < JavaScriptError
+    private
+    
+    def generate_message
+      message = "#{attributes['message'] || 'Dependency error'}\n"
+      message << "The specified dependency '#{attributes['nodo_dependency']}' could not be loaded. "
+      message << "Run 'yarn add #{attributes['nodo_dependency']}' to install it.\n"
+    end
+  end
 end

@@ -1,3 +1,8 @@
+## 1.6.1
+
+- configure default timeout through `Nodo.timeout`
+- friendly error messages for missing dependencies
+
 ## 1.6.0
 
 - use default `modules_root` for Rails applications

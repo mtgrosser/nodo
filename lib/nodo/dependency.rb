@@ -7,7 +7,16 @@ module Nodo
     end
   
     def to_js
-      "const #{name} = require(#{package.to_json});\n"
+      <<~JS
+        const #{name} = (() => {
+          try {
+            return require(#{package.to_json});
+          } catch(e) {
+            e.nodo_dependency = #{package.to_json};
+            throw e;
+          }
+        })();
+      JS
     end
   end
 end
