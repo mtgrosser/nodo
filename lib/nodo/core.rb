@@ -26,11 +26,6 @@ module Nodo
         end
       end
       
-      def new(*args, **opts, &block)
-        raise ClassError, :new if self == Nodo::Core
-        super(*args, **opts, &block)
-      end
-
       def instance
         @instance ||= new
       end
@@ -148,6 +143,7 @@ module Nodo
     end
     
     def initialize
+      raise ClassError, :new if self.class == Nodo::Core
       @@mutex.synchronize do
         ensure_process_is_spawned
         wait_for_socket
