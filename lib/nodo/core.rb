@@ -28,7 +28,7 @@ module Nodo
       
       def new(*args, **opts, &block)
         raise ClassError, :new if self == Nodo::Core
-        super
+        super(*args, **opts, &block)
       end
 
       def instance
