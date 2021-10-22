@@ -217,8 +217,63 @@ Nodo.debug = true
 before instantiating any worker instances. The debug mode will be active during
 the current process run.
 
+To print a debug message from JS code:
 
-### Clean your Rails root
+```js
+nodo.debug("Debug message");
+```
+
+### Evaluation
+
+While `Nodo` is mainly function-based, it is possible to evaluate JS code in the
+context of the defined object.
+
+```ruby
+foo = Foo.new.evaluate("3 + 5")
+=> 8
+```
+
+Evaluated code can access functions, required dependencies and constants:
+
+```ruby
+class Foo < Nodo::Core
+  const :BAR, 'bar'
+  require :uuid
+  function :hello, code: '() => "world"'
+end
+
+foo = Foo.new
+
+foo.evaluate('BAR')
+=> "bar"
+
+foo.evaluate('uuid.v4()')
+=> "f258bef3-0d6f-4566-ad39-d8dec973ef6b"
+
+foo.evaluate('hello()')
+=> "world"
+```
+
+Variables defined by evaluation are local to the current instance:
+
+```ruby
+one = Foo.new
+one.evaluate('a = 1')
+two = Foo.new
+two.evaluate('a = 2')
+one.evaluate('a') => 1
+two.evaluate('a') => 2
+```
+
+⚠️ Evaluation comes with the usual caveats:
+
+- Avoid modifying any of your predefined identifiers. Remember that in JS,
+  as in Ruby, constants are not necessarily constant.
+- Never evaluate any code which includes un-checked user data. The Node.js process
+  has full read/write access to your filesystem! 💥
+
+
+## Clean your Rails root
 
 For Rails applications, Nodo enables you to move `node_modules`, `package.json` and
 `yarn.lock` into your application's `vendor` folder by setting the `NODE_PATH` in
@@ -229,7 +284,7 @@ an initializer:
 Nodo.modules_root = Rails.root.join('vendor', 'node_modules')
 ```
 
-The rationale behind this is NPM modules being external vendor dependencies, which
+The rationale for this is NPM modules being external vendor dependencies, which
 should not clutter the application root directory.
 
 With this new default, all `yarn` operations should be done after `cd`ing to `vendor`.

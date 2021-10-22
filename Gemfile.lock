@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    nodo (1.6.1)
+    nodo (1.6.2)
 
 GEM
   remote: https://rubygems.org/

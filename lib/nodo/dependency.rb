@@ -8,7 +8,7 @@ module Nodo
   
     def to_js
       <<~JS
-        const #{name} = (() => {
+        const #{name} = __nodo_klass__.#{name} = (() => {
           try {
             return require(#{package.to_json});
           } catch(e) {

@@ -8,3 +8,6 @@ require 'byebug'
 require 'minitest/autorun'
 
 require 'nodo'
+
+# Enable to print debug messages
+# Nodo.debug = true

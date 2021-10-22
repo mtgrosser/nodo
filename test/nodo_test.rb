@@ -111,30 +111,100 @@ class NodoTest < Minitest::Test
   end
   
   def test_logging
-    prev_logger = Nodo.logger
-    Nodo.logger = Object.new.instance_exec do
+    with_logger test_logger do
+      assert_raises(Nodo::JavaScriptError) do
+        Class.new(Nodo::Core) { function :bork, code: "() => {;;;" }.new
+      end
+      assert_equal 1, Nodo.logger.errors.size
+      assert_match /Nodo::JavaScriptError/, Nodo.logger.errors.first
+    end
+  end
+  
+  def test_dependency_error
+    with_logger nil do
+      nodo = Class.new(Nodo::Core) do
+        require 'foobarfoo'
+      end
+      assert_raises Nodo::DependencyError do
+        nodo.new
+      end
+    end
+  end
+  
+  def test_evaluation
+    assert_equal 8, Class.new(Nodo::Core).new.evaluate('3 + 5')
+  end
+  
+  def test_evaluation_can_access_constants
+    nodo = Class.new(Nodo::Core) do
+      const :FOO, 'bar'
+    end
+    assert_equal 'barfoo', nodo.new.evaluate('FOO + "foo"')
+  end
+  
+  def test_evaluation_can_access_functions
+    nodo = Class.new(Nodo::Core) do
+      function :hello, code: "(name) => `Hello ${name}!`"
+    end
+    assert_equal 'Hello World!', nodo.new.evaluate('hello("World")')
+  end
+  
+  def test_evaluation_contexts_properties_are_shared_between_instances
+    nodo = Class.new(Nodo::Core) do
+      const :LIST, []
+      function :list, code: "() => LIST"
+    end
+    one = nodo.new
+    two = nodo.new
+    one.evaluate("LIST.push('one')")
+    two.evaluate("LIST.push('two')")
+    assert_equal %w[one two], one.evaluate('list()')
+    assert_equal %w[one two], two.evaluate('list()')
+  end
+  
+  def test_evaluation_contexts_locals_are_separated_by_instance
+    nodo = Class.new(Nodo::Core)
+    one = nodo.new
+    two = nodo.new
+    one.evaluate("const list = []; list.push('one')")
+    two.evaluate("const list = []; list.push('two')")
+    assert_equal %w[one], one.evaluate('list')
+    assert_equal %w[two], two.evaluate('list')
+  end
+  
+  def test_evaluation_can_require_on_its_own
+    nodo = Class.new(Nodo::Core).new
+    nodo.evaluate('const uuid = require("uuid")')
+    uuid = nodo.evaluate('uuid.v4()')
+    assert_match /\A\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\z/, uuid
+  end
+  
+  def test_evaluation_can_access_requires
+    nodo = Class.new(Nodo::Core) { require :uuid }
+    uuid = nodo.new.evaluate('uuid.v4()')
+    assert_match /\A\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\z/, uuid
+  end
+  
+  def test_cannot_instantiate_core
+    assert_raises Nodo::ClassError do
+      Nodo::Core.new
+    end
+  end
+  
+  private
+  
+  def test_logger
+    Object.new.instance_exec do
       def errors; @errors ||= []; end
       def error(msg); errors << msg; end
       self
     end
-    assert_raises(Nodo::JavaScriptError) do
-      Class.new(Nodo::Core) { function :bork, code: "() => {;;;" }.new
-    end
-    assert_equal 1, Nodo.logger.errors.size
-    assert_match /Nodo::JavaScriptError/, Nodo.logger.errors.first
-  ensure
-    Nodo.logger = prev_logger
   end
   
-  def test_dependency_error
+  def with_logger(logger)
     prev_logger = Nodo.logger
-    Nodo.logger = nil
-    nodo = Class.new(Nodo::Core) do
-      require 'foobarfoo'
-    end
-    assert_raises Nodo::DependencyError do
-      nodo.new
-    end
+    Nodo.logger = logger
+    yield
   ensure
     Nodo.logger = prev_logger
   end

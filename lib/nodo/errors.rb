@@ -2,6 +2,11 @@ module Nodo
   class Error < StandardError; end
   class TimeoutError < Error; end
   class CallError < Error; end
+  class ClassError < Error
+    def initialize(method = nil)
+      super("Cannot call method `#{method}' on Nodo::Core, use subclass instead")
+    end
+  end
   
   class JavaScriptError < Error
     attr_reader :attributes
@@ -37,7 +42,7 @@ module Nodo
     end
     
     def generate_message
-      message = "#{attributes['message'] || 'Unknown error'}"
+      message = "#{attributes['message'] || attributes['name'] || 'Unknown error'}"
       message << format_location(attributes['loc'])
     end
     
@@ -51,7 +56,7 @@ module Nodo
     private
     
     def generate_message
-      message = "#{attributes['message'] || 'Dependency error'}\n"
+      message = "#{attributes['message'] || attributes['name'] || 'Dependency error'}\n"
       message << "The specified dependency '#{attributes['nodo_dependency']}' could not be loaded. "
       message << "Run 'yarn add #{attributes['nodo_dependency']}' to install it.\n"
     end

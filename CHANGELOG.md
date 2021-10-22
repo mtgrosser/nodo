@@ -1,3 +1,8 @@
+## 1.6.2
+
+- context-based evaluation
+- prevent Nodo::Core from being instantiated
+
 ## 1.6.1
 
 - configure default timeout through `Nodo.timeout`

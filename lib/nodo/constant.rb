@@ -7,7 +7,7 @@ module Nodo
     end
 
     def to_js
-      "const #{name} = #{value.to_json};\n"
+      "const #{name} =  __nodo_klass__.#{name} = #{value.to_json};\n"
     end
   end
 end
