@@ -111,13 +111,11 @@ module Nodo
         self.dependencies = dependencies + mods.merge(deps).map { |name, package| Dependency.new(name, package) }
       end
 
-      def function(name, _code = nil, timeout: Nodo.timeout, code: nil)
+      def function(name, _code = nil, timeout: Nodo.timeout, code: nil, &block)
         raise ArgumentError, "reserved method name #{name.inspect}" if reserved_method_name?(name)
-        code = (code ||= _code).strip
-        raise ArgumentError, 'function code is required' if '' == code
         loc = caller_locations(1, 1)[0]
         source_location = "#{loc.path}:#{loc.lineno}: in `#{name}'"
-        self.functions = functions.merge(name => Function.new(name, _code || code, source_location, timeout))
+        self.functions = functions.merge(name => Function.new(name, _code || code, source_location, timeout, &block))
         define_method(name) { |*args| call_js_method(name, args) }
       end
       
@@ -129,8 +127,8 @@ module Nodo
         self.constants = constants + [Constant.new(name, value)]
       end
       
-      def script(code)
-        self.scripts = scripts + [Script.new(code)]
+      def script(code = nil, &block)
+        self.scripts = scripts + [Script.new(code, &block)]
       end
       
       def nodo_js
@@ -246,7 +244,7 @@ module Nodo
       request = Net::HTTP::Post.new("/#{clsid}/#{context_id}/#{method}", 'Content-Type': 'application/json')
       request.body = JSON.dump(args)
       client = Client.new("unix://#{socket_path}")
-      client.read_timeout = function.timeout if function
+      client.read_timeout = function&.timeout || Nodo.timeout
       response = client.request(request)
       if response.is_a?(Net::HTTPOK)
         parse_response(response)

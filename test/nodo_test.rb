@@ -43,6 +43,28 @@ class NodoTest < Minitest::Test
     assert_equal 99, nodo.new.get_somevar
   end
   
+  def test_deferred_script_definition_by_block
+    nodo = Class.new(Nodo::Core) do
+      singleton_class.attr_accessor :value
+      script do
+        "var somevar = #{value.to_json};"
+      end
+      function :get_somevar, "() => somevar"
+    end
+    nodo.value = 123
+    assert_equal 123, nodo.new.get_somevar
+  end
+  
+  def test_cannot_define_both_code_and_block_for_script
+    assert_raises ArgumentError do
+      Class.new(Nodo::Core) do
+        script 'var foo;' do
+          'var bar;'
+        end
+      end
+    end
+  end
+  
   def test_async_await
     nodo = Class.new(Nodo::Core) do
       function :do_something, "async () => { return await 'resolved'; }"
@@ -80,6 +102,32 @@ class NodoTest < Minitest::Test
       JS
     end
     assert_equal [1, 2, 3], nodo.new.test
+  end
+  
+  def test_deferred_function_definition_by_block
+    nodo = lambda do
+      Class.new(Nodo::Core) do
+        singleton_class.attr_accessor :value
+
+        function :test, timeout: nil do
+          <<~JS
+            () => [1, #{value}, 3]
+          JS
+        end
+      end
+    end
+    assert_equal [1, nil, 3], nodo.().new.test
+    assert_equal [1, 222, 3], nodo.().tap { |klass| klass.value = 222 }.new.test
+  end
+  
+  def test_cannot_define_both_code_and_block_for_function
+    assert_raises ArgumentError do
+      Class.new(Nodo::Core) do
+        function :test, code: '() => true' do
+          '() => false'
+        end
+      end
+    end
   end
   
   def test_code_is_required

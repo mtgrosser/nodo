@@ -131,6 +131,23 @@ class BarFoo < Nodo::Core
 end
 ```
 
+With the above syntax, the script code will be generated during class definition
+time. In order to have the code generated when the first instance is created, the
+code can be defined inside a block:
+
+```ruby
+class Foo < Nodo::Core
+  script do
+    <<~JS
+      var definitionTime = #{Time.now.to_json};
+    JS
+  end
+end
+```
+
+Note that the script will still be executed only once, when the first instance
+of class is created.
+
 ### Inheritance
 
 Subclasses will inherit functions, constants, dependencies and scripts from
@@ -167,6 +184,37 @@ class SyncFoo < Nodo::Core
   JS
 end
 ```
+
+### Deferred function definition
+
+By default, the function code string literal is created when the class
+is defined. Therefore any string interpolation inside the code will take
+place at definition time.
+
+In order to defer the code generation until the first object instantiation,
+the function code can be given inside a block:
+
+```ruby
+class Deferred < Nodo::Core
+  function :now, <<~JS
+    () => { return #{Time.now.to_json}; }
+  JS
+
+  function :later do
+    <<~JS
+      () => { return #{Time.now.to_json}; }
+    JS
+  end
+end
+
+instance = Deferred.new
+sleep 5
+instance.now => "2021-10-28 20:30:00 +0200"
+instance.later => "2021-10-28 20:30:05 +0200"
+```
+
+The block will be invoked when the first instance is created. As with deferred
+scripts, it will only be invoked once.
 
 ### Limiting function execution time
 
