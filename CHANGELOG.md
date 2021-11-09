@@ -1,4 +1,4 @@
-## master
+## 1.6.4
 
 - dynamic ESM imports through `nodo.import`
 
