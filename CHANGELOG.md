@@ -1,3 +1,7 @@
+## master
+
+- dynamic ESM imports through `nodo.import`
+
 ## 1.6.3
 
 - use Nodo.timeout for all JS calls
