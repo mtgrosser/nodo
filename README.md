@@ -91,6 +91,23 @@ class FooBar < Nodo::Core
 end
 ```
 
+### Dynamic ESM imports
+
+ES modules can be imported dynamically using `nodo.import()`:
+
+```ruby
+class DynamicFoo < Nodo::Core
+  function :v4, <<~JS
+    async () => {
+      const uuid = await nodo.import('uuid');
+      return await uuid.v4()
+    }
+  JS
+end
+```
+
+Note that the availability of dynamic imports depends on your Node version.
+
 ### Alternate function definition syntax
 
 JS code can also be supplied using the `code:` keyword argument:

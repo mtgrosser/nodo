@@ -224,19 +224,40 @@ class NodoTest < Minitest::Test
     nodo = Class.new(Nodo::Core).new
     nodo.evaluate('const uuid = require("uuid")')
     uuid = nodo.evaluate('uuid.v4()')
-    assert_match /\A\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\z/, uuid
+    assert_uuid uuid
   end
   
   def test_evaluation_can_access_requires
     nodo = Class.new(Nodo::Core) { require :uuid }
     uuid = nodo.new.evaluate('uuid.v4()')
-    assert_match /\A\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\z/, uuid
+    assert_uuid uuid
   end
   
   def test_cannot_instantiate_core
     assert_raises Nodo::ClassError do
       Nodo::Core.new
     end
+  end
+  
+  def test_dynamic_imports_in_functions
+    klass = Class.new(Nodo::Core) do
+      function :v4, <<~JS
+        async () => {
+          const uuid = await nodo.import('uuid');
+          return await uuid.v4()
+        }
+      JS
+    end
+    nodo = klass.new
+    assert_uuid uuid_1 = nodo.v4
+    assert_uuid uuid_2 = nodo.v4
+    assert uuid_1 != uuid_2
+  end
+  
+  def test_dynamic_imports_in_evaluation
+    nodo = Class.new(Nodo::Core)
+    uuid = nodo.new.evaluate("nodo.import('uuid').then((uuid) => uuid.v4()).catch((e) => null)")
+    assert_uuid uuid
   end
   
   private
@@ -255,6 +276,10 @@ class NodoTest < Minitest::Test
     yield
   ensure
     Nodo.logger = prev_logger
+  end
+  
+  def assert_uuid(obj)
+    assert_match /\A\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\z/, obj
   end
 
 end
