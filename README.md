@@ -54,6 +54,26 @@ foo.say_hi('Nodo')
 => "Hello Nodo!"
 ```
 
+JS code can also be supplied using the `code:` keyword argument:
+
+```ruby
+function :hello, code: "() => 'world'"
+```
+
+### Async functions
+
+`Nodo` supports calling `async` functions from Ruby.
+The Ruby call will happen synchronously, i.e. it will block until the JS
+function resolves:
+
+```ruby
+class SyncFoo < Nodo::Core
+  function :do_something, <<~JS
+    async () => { return await asyncFunc(); }
+  JS
+end
+```
+
 ### Using npm modules
 
 Install your modules to `node_modules`:
@@ -78,7 +98,6 @@ end
 bar = Bar.new
 bar.v4 => "b305f5c4-db9a-4504-b0c3-4e097a5ec8b9"
 ```
-
 
 ### Aliasing requires
 
@@ -107,25 +126,6 @@ end
 ```
 
 Note that the availability of dynamic imports depends on your Node version.
-
-### Alternate function definition syntax
-
-JS code can also be supplied using the `code:` keyword argument:
-
-```ruby
-function :hello, code: "() => 'world'"
-```
-
-### Setting NODE_PATH
-
-By default, `./node_modules` is used as the `NODE_PATH`.
-
-To set a custom path:
-```ruby
-Nodo.modules_root = 'path/to/node_modules'
-```
-
-Also see: [Clean your Rails root](#Clean-your-Rails-root)
 
 ### Defining JS constants
 
@@ -188,20 +188,6 @@ SubFoo.new.bar => "callingsuperclass"
 SubSubFoo.new.bar => "callingsubsubclass"
 ```
 
-### Async functions
-
-`Nodo` supports calling `async` functions from Ruby. 
-The Ruby call will happen synchronously, i.e. it will block until the JS
-function resolves:
-
-```ruby
-class SyncFoo < Nodo::Core
-  function :do_something, <<~JS
-    async () => { return await asyncFunc(); }
-  JS
-end
-```
-
 ### Deferred function definition
 
 By default, the function code string literal is created when the class
@@ -258,6 +244,17 @@ Foo.new.sleep(2)
 =>  Nodo::TimeoutError raised
 ```
 
+### Setting NODE_PATH
+
+By default, `./node_modules` is used as the `NODE_PATH`.
+
+To set a custom path:
+```ruby
+Nodo.modules_root = 'path/to/node_modules'
+```
+
+Also see: [Clean your Rails root](#Clean-your-Rails-root)
+
 ### Logging
 
 By default, JS errors will be logged to `STDOUT`.
@@ -269,7 +266,6 @@ Nodo.logger = Logger.new('nodo.log')
 ```
 
 In Rails applications, `Rails.logger` will automatically be set.
-
 
 ### Debugging
 
