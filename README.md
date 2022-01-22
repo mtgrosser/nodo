@@ -352,3 +352,15 @@ With this new default, all `yarn` operations should be done after `cd`ing to `ve
 
 This repo provides an [adapted version](https://github.com/mtgrosser/nodo/blob/master/install/yarn.rake)
 of the `yarn:install` rake task which will automatically take care of the vendored module location.
+
+
+## Working with web mocking frameworks like WebMock
+
+Nodo uses HTTP via UNIX sockets to connect to its Node process. This may lead to
+conflicts during tests when using `WebMock` or other tools which interfere with
+`Net::HTTP`. In order to work with WebMock, you need to enable its `allow_localhost`
+option:
+
+```ruby
+WebMock.disable_net_connect!(allow_localhost: true)
+```
