@@ -1,3 +1,7 @@
+## 1.6.5
+
+- Fix socket initialization error on JRuby
+
 ## 1.6.4
 
 - dynamic ESM imports through `nodo.import`

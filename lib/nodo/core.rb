@@ -221,7 +221,7 @@ module Nodo
       socket = nil
       while Time.now - start < LAUNCH_TIMEOUT
         begin
-          break if socket = UNIXSocket.new(socket_path)
+          break if socket = UNIXSocket.new(socket_path.to_s)
         rescue Errno::ENOENT, Errno::ECONNREFUSED, Errno::ENOTDIR
           Kernel.sleep(0.2)
         end
