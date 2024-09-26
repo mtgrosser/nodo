@@ -1,3 +1,7 @@
+## 1.7.0
+
+- Ensure JS core is loaded as CJS (@bogdan)
+
 ## 1.6.5
 
 - Fix socket initialization error on JRuby
