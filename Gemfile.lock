@@ -20,6 +20,3 @@ DEPENDENCIES
   minitest
   nodo!
   rake
-
-BUNDLED WITH
-   2.5.11
