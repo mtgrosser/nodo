@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.description   = 'Fast Ruby bridge to run JavaScript inside a Node process'
   s.homepage      = 'https://github.com/mtgrosser/nodo'
 
-  s.files = ['LICENSE', 'README.md'] + Dir['lib/**/*.{rb,js}']
+  s.files = ['LICENSE', 'README.md'] + Dir['lib/**/*.{rb,cjs}']
   
   s.required_ruby_version = '>= 2.3.0'
 
