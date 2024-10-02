@@ -97,7 +97,8 @@ module Nodo
 
       def finalize_context(context_id)
         proc do
-          if not @@exiting and core = Nodo::Core.instance
+          if not @@exiting and core = @instance
+            puts "finalize_context #{context_id}"
             core.send(:call_js_method, GC_METHOD, context_id)
           end
         end
@@ -237,7 +238,7 @@ module Nodo
       raise NameError, "undefined function `#{method}' for #{self.class}" unless function || INTERNAL_METHODS.include?(method)
       context_id = case method
         when DEFINE_METHOD then 0
-        when GC_METHOD then args.first
+        when GC_METHOD then args
       else
         object_id
       end

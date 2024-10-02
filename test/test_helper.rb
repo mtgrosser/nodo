@@ -4,7 +4,11 @@ require 'rubygems'
 require 'bundler/setup'
 Bundler.require(:default)
 
-require 'byebug'
+require 'debug'
+
+require 'minitest/reporters'
+Minitest::Reporters.use! Minitest::Reporters::SpecReporter.new
+
 require 'minitest/autorun'
 
 require 'nodo'

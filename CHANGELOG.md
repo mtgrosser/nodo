@@ -1,6 +1,12 @@
+## 1.7.1
+
+- Fix packaging
+- Fix exception in finalizer
+
 ## 1.7.0
 
 - Ensure JS core is loaded as CJS (@bogdan)
+- gem packaged incorrectly, yanked
 
 ## 1.6.5
 

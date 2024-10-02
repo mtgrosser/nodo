@@ -87,7 +87,7 @@ class NodoTest < Minitest::Test
     assert_equal 'callingsubsubclass', subsubclass.new.bar
   end
   
-  def test_instance_function
+  def test_class_function
     nodo = Class.new(Nodo::Core) do
       function :hello, "() => 'world'"
       class_function :hello
@@ -247,6 +247,7 @@ class NodoTest < Minitest::Test
           return await uuid.v4()
         }
       JS
+      def self.name; "UUIDGen"; end
     end
     nodo = klass.new
     assert_uuid uuid_1 = nodo.v4
