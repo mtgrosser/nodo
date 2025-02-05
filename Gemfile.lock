@@ -1,7 +1,8 @@
 PATH
   remote: .
   specs:
-    nodo (1.7.1)
+    nodo (1.8.0)
+      logger
 
 GEM
   remote: https://rubygems.org/
@@ -15,7 +16,8 @@ GEM
     irb (1.14.1)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
-    minitest (5.25.1)
+    logger (1.6.5)
+    minitest (5.25.4)
     minitest-reporters (1.7.1)
       ansi
       builder

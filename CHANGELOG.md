@@ -1,3 +1,8 @@
+## 1.8.0
+
+- Add class level ESM import (@kylesmile)
+- Drop Ruby 2.7
+
 ## 1.7.1
 
 - Fix packaging

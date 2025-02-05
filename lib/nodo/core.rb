@@ -106,16 +106,13 @@ module Nodo
 
       private
 
-      def require(*mods)
-        deps = mods.last.is_a?(Hash) ? mods.pop : {}
-        mods = mods.map { |m| [m, m] }.to_h
-        self.dependencies = dependencies + mods.merge(deps).map { |name, package| Dependency.new(name, package, type: :cjs) }
-      end
-
-      def import(*mods)
-        deps = mods.last.is_a?(Hash) ? mods.pop : {}
-        mods = mods.map { |m| [m, m] }.to_h
-        self.dependencies = dependencies + mods.merge(deps).map { |name, package| Dependency.new(name, package, type: :esm) }
+      { require: :cjs, import: :esm }.each do |method, type|
+        define_method method do |*mods|
+          deps = mods.last.is_a?(Hash) ? mods.pop : {}
+          mods = mods.map { |m| [m, m] }.to_h
+          self.dependencies = dependencies + mods.merge(deps).map { |name, package| Dependency.new(name, package, type: type) }
+        end
+        private method
       end
 
       def function(name, _code = nil, timeout: Nodo.timeout, code: nil, &block)
