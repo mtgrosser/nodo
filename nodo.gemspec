@@ -5,7 +5,7 @@ require 'nodo/version'
 Gem::Specification.new do |s|
   s.name          = 'nodo'
   s.version       = Nodo::VERSION
-  s.date          = '2024-10-02'
+  s.date          = '2025-02-05'
   s.authors       = ['Matthias Grosser']
   s.email         = ['mtgrosser@gmx.net']
   s.license       = 'MIT'
@@ -16,5 +16,7 @@ Gem::Specification.new do |s|
 
   s.files = ['LICENSE', 'README.md'] + Dir['lib/**/*.{rb,cjs}']
   
-  s.required_ruby_version = '>= 2.7.0'
+  s.required_ruby_version = '>= 3.0.0'
+  
+  s.add_dependency 'logger'
 end

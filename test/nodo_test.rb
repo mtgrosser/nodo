@@ -167,8 +167,8 @@ class NodoTest < Minitest::Test
       assert_match /Nodo::JavaScriptError/, Nodo.logger.errors.first
     end
   end
-  
-  def test_dependency_error
+
+  def test_require_dependency_error
     with_logger nil do
       nodo = Class.new(Nodo::Core) do
         require 'foobarfoo'
@@ -260,9 +260,44 @@ class NodoTest < Minitest::Test
     uuid = nodo.new.evaluate("nodo.import('uuid').then((uuid) => uuid.v4()).catch((e) => null)")
     assert_uuid uuid
   end
-  
+
+  def test_import
+    nodo = Class.new(Nodo::Core) do
+      import :fs
+      function :exists_file, "(file) => fs.existsSync(file)"
+    end
+    assert_equal true, nodo.instance.exists_file(__FILE__)
+    assert_equal false, nodo.instance.exists_file('FOOBARFOO')
+  end
+
+  def test_import_npm
+    nodo = Class.new(Nodo::Core) do
+      import :uuid
+      function :v4, "() => uuid.v4()"
+    end
+    assert uuid = nodo.new.v4
+    assert_equal 36, uuid.size
+  end
+
+  def test_import_dependency_error
+    with_logger nil do
+      nodo = Class.new(Nodo::Core) do
+        import 'foobarfoo'
+      end
+      assert_raises Nodo::DependencyError do
+        nodo.new
+      end
+    end
+  end
+
+  def test_evaluation_can_access_imports
+    nodo = Class.new(Nodo::Core) { import :uuid }
+    uuid = nodo.new.evaluate('uuid.v4()')
+    assert_uuid uuid
+  end
+
   private
-  
+
   def test_logger
     Object.new.instance_exec do
       def errors; @errors ||= []; end

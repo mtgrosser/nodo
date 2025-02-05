@@ -99,6 +99,23 @@ bar = Bar.new
 bar.v4 => "b305f5c4-db9a-4504-b0c3-4e097a5ec8b9"
 ```
 
+`import` is also supported for loading ESM packages:
+
+```ruby
+class Bar < Nodo::Core
+  import :uuid
+
+  function :v4, <<~JS
+    () => {
+      return uuid.v4();
+    }
+  JS
+end
+
+bar = Bar.new
+bar.v4 => "b305f5c4-db9a-4504-b0c3-4e097a5ec8b9"
+```
+
 ### Aliasing requires
 
 If the library name cannot be used as name of the constant, the `const` name
