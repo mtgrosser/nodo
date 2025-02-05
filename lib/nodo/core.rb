@@ -82,7 +82,7 @@ module Nodo
 
       def generate_class_code
         <<~JS
-          (() => {
+          (async () => {
             const __nodo_klass__ = { nodo: global.nodo };
             #{dependencies.map(&:to_js).join}
             #{constants.map(&:to_js).join}
@@ -109,7 +109,13 @@ module Nodo
       def require(*mods)
         deps = mods.last.is_a?(Hash) ? mods.pop : {}
         mods = mods.map { |m| [m, m] }.to_h
-        self.dependencies = dependencies + mods.merge(deps).map { |name, package| Dependency.new(name, package) }
+        self.dependencies = dependencies + mods.merge(deps).map { |name, package| Dependency.new(name, package, type: :cjs) }
+      end
+
+      def import(*mods)
+        deps = mods.last.is_a?(Hash) ? mods.pop : {}
+        mods = mods.map { |m| [m, m] }.to_h
+        self.dependencies = dependencies + mods.merge(deps).map { |name, package| Dependency.new(name, package, type: :esm) }
       end
 
       def function(name, _code = nil, timeout: Nodo.timeout, code: nil, &block)
