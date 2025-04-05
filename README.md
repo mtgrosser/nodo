@@ -28,7 +28,7 @@ gem 'nodo'
 
 Nodo requires a working installation of Node.js.
 
-If the executable is located in your `PATH`, no configuration is required. Otherwise, the path to to binary can be set using:
+If the executable is located in your `PATH`, no configuration is required. Otherwise, the path to the binary can be set using:
 
 ```ruby
 Nodo.binary = '/usr/local/bin/node'
