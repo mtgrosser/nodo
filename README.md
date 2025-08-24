@@ -34,6 +34,11 @@ If the executable is located in your `PATH`, no configuration is required. Other
 Nodo.binary = '/usr/local/bin/node'
 ```
 
+Set flags on the binary like so
+```ruby
+Nodo.binary_flags << '--enable-source-maps'
+```
+
 ## Usage
 
 In Nodo, you define JS functions as you would define Ruby methods:

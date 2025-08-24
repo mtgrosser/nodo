@@ -9,11 +9,12 @@ require 'forwardable'
 
 module Nodo
   class << self
-    attr_accessor :modules_root, :env, :binary, :logger, :debug, :timeout
+    attr_accessor :modules_root, :env, :binary, :binary_flags, :logger, :debug, :timeout
   end
   self.modules_root = './node_modules'
   self.env = {}
   self.binary = 'node'
+  self.binary_flags = []
   self.logger = Logger.new(STDOUT)
   self.debug  = false
   self.timeout = 60
