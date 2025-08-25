@@ -35,21 +35,6 @@ Otherwise, the path to the binary can be set using:
 Nodo.binary = '/usr/local/bin/node'
 ```
 
-#### Process options
-
-Extra commandline arguments to the `node` binary can be supplied in standard
-[`Process::spawn` array form](https://docs.ruby-lang.org/en/master/Process.html#method-c-spawn):
-
-```ruby
-Nodo.args = %w[--enable-source-maps]
-```
-
-Environment variables to be supplied to the `node` process can be set using:
-
-```ruby
-Nodo.env = { 'NAME' => 'value' }
-```
-
 ## Usage
 
 In Nodo, you define JS functions as you would define Ruby methods:
@@ -396,4 +381,19 @@ option:
 
 ```ruby
 WebMock.disable_net_connect!(allow_localhost: true)
+```
+
+## Node process options
+
+Extra commandline arguments to the `node` binary can be supplied in standard
+[`Process::spawn` array form](https://docs.ruby-lang.org/en/master/Process.html#method-c-spawn):
+
+```ruby
+Nodo.args = %w[--enable-source-maps]
+```
+
+Environment variables to be supplied to the `node` process can be set using:
+
+```ruby
+Nodo.env = { 'NAME' => 'value' }
 ```
