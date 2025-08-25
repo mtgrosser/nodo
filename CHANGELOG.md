@@ -1,6 +1,6 @@
 ## 1.8.1
 
-- Node.js commandline argument support (@tidyhq)
+- Node.js commandline argument support (@atyndall)
 
 ## 1.8.0
 
