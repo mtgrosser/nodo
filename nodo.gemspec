@@ -5,7 +5,7 @@ require 'nodo/version'
 Gem::Specification.new do |s|
   s.name          = 'nodo'
   s.version       = Nodo::VERSION
-  s.date          = '2025-02-05'
+  s.date          = '2025-08-25'
   s.authors       = ['Matthias Grosser']
   s.email         = ['mtgrosser@gmx.net']
   s.license       = 'MIT'
