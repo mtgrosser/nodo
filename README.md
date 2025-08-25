@@ -28,10 +28,26 @@ gem 'nodo'
 
 Nodo requires a working installation of Node.js.
 
-If the executable is located in your `PATH`, no configuration is required. Otherwise, the path to the binary can be set using:
+If the executable is located in your `PATH`, no configuration is required.
+Otherwise, the path to the binary can be set using:
 
 ```ruby
 Nodo.binary = '/usr/local/bin/node'
+```
+
+#### Process options
+
+Extra commandline arguments to the `node` binary can be supplied in standard
+[`Process::spawn` array form](https://docs.ruby-lang.org/en/master/Process.html#method-c-spawn):
+
+```ruby
+Nodo.args = %w[--enable-source-maps]
+```
+
+Environment variables to be supplied to the `node` process can be set using:
+
+```ruby
+Nodo.env = { 'NAME' => 'value' }
 ```
 
 ## Usage

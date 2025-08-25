@@ -211,7 +211,7 @@ module Nodo
       @@tmpdir = Pathname.new(Dir.mktmpdir('nodo'))
       env = Nodo.env.merge('NODE_PATH' => Nodo.modules_root.to_s)
       env['NODO_DEBUG'] = '1' if Nodo.debug
-      @@node_pid = Process.spawn(env, Nodo.binary, '-e', self.class.generate_core_code, '--', socket_path.to_s, err: :out)
+      @@node_pid = Process.spawn(env, Nodo.binary, '-e', self.class.generate_core_code, *Nodo.args, '--', socket_path.to_s, err: :out)
       at_exit do
         @@exiting = true
         Process.kill(:SIGTERM, node_pid) rescue Errno::ECHILD
