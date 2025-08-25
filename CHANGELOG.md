@@ -1,3 +1,7 @@
+## 1.8.1
+
+- Node.js commandline argument support (@tidyhq)
+
 ## 1.8.0
 
 - Add class level ESM import (@kylesmile)
