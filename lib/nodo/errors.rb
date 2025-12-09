@@ -48,7 +48,7 @@ module Nodo
     
     def format_location(loc)
       return '' unless loc
-      loc.inject(' in') { |s, (key, value)| s << " #{key}: #{value}" }
+      loc.inject(+' in') { |s, (key, value)| s << " #{key}: #{value}" }
     end
   end
   
