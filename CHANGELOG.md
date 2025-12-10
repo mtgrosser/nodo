@@ -1,3 +1,7 @@
+## 1.8.2
+
+- Fix frozen string literal warning (@spiderbites)
+
 ## 1.8.1
 
 - Node.js commandline argument support (@atyndall)

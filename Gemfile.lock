@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    nodo (1.8.1)
+    nodo (1.8.2)
       logger
 
 GEM
@@ -43,4 +43,3 @@ DEPENDENCIES
   minitest-reporters
   nodo!
   rake
-
