@@ -296,29 +296,62 @@ class NodoTest < Minitest::Test
     assert_uuid uuid
   end
 
-  def test_esm_resolution_uses_package_exports
+  def test_esm_resolution_prefers_esm_entry_point
     nodo = Class.new(Nodo::Core) do
-      import :uuid
-      function :get_exports, "() => Object.keys(uuid)"
-    end
-
-    exports = nodo.new.get_exports
-    assert_includes exports, 'v4'
-    assert_includes exports, 'v1'
-  end
-
-  def test_esm_resolution_with_dynamic_import
-    nodo = Class.new(Nodo::Core) do
-      function :get_uuid_exports, <<~JS
+      function :get_entry_type, <<~JS
         async () => {
-          const mod = await nodo.import('uuid');
-          return Object.keys(mod);
+          const mod = await nodo.import('mock-dual-package');
+          return mod.entryType;
         }
       JS
     end
 
-    exports = nodo.new.get_uuid_exports
-    assert_includes exports, 'v4'
+    assert_equal 'esm', nodo.new.get_entry_type
+  end
+
+  def test_esm_resolution_with_import_declaration
+    nodo = Class.new(Nodo::Core) do
+      import mockPkg: 'mock-dual-package'
+      function :get_entry_type, "() => mockPkg.entryType"
+    end
+
+    assert_equal 'esm', nodo.new.get_entry_type
+  end
+
+  def test_esm_resolution_esm_only_package
+    nodo = Class.new(Nodo::Core) do
+      import mockPkg: 'mock-esm-only-package'
+      function :get_entry_type, "() => mockPkg.entryType"
+    end
+
+    assert_equal 'esm-only', nodo.new.get_entry_type
+  end
+
+  def test_esm_resolution_cjs_only_package
+    nodo = Class.new(Nodo::Core) do
+      import mockPkg: 'mock-cjs-only-package'
+      function :get_entry_type, "() => mockPkg.default.entryType"
+    end
+
+    assert_equal 'cjs-only', nodo.new.get_entry_type
+  end
+
+  def test_esm_resolution_legacy_module_field
+    nodo = Class.new(Nodo::Core) do
+      import mockPkg: 'mock-legacy-dual-package'
+      function :get_entry_type, "() => mockPkg.entryType"
+    end
+
+    assert_equal 'esm', nodo.new.get_entry_type
+  end
+
+  def test_esm_resolution_legacy_type_module
+    nodo = Class.new(Nodo::Core) do
+      import mockPkg: 'mock-legacy-esm-package'
+      function :get_entry_type, "() => mockPkg.entryType"
+    end
+
+    assert_equal 'esm', nodo.new.get_entry_type
   end
 
   private

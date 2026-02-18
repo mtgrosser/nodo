@@ -1,5 +1,10 @@
 {
   "dependencies": {
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "mock-dual-package": "file:test/fixtures/mock-dual-package",
+    "mock-esm-only-package": "file:test/fixtures/mock-esm-only-package",
+    "mock-cjs-only-package": "file:test/fixtures/mock-cjs-only-package",
+    "mock-legacy-dual-package": "file:test/fixtures/mock-legacy-dual-package",
+    "mock-legacy-esm-package": "file:test/fixtures/mock-legacy-esm-package"
   }
 }
