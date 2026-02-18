@@ -117,6 +117,24 @@ bar = Bar.new
 bar.v4 => "b305f5c4-db9a-4504-b0c3-4e097a5ec8b9"
 ```
 
+### Named imports
+
+To import a specific named export from a package, use the `from:` syntax:
+
+```ruby
+class Bar < Nodo::Core
+  import :v4, from: 'uuid'
+
+  function :generate, <<~JS
+    () => {
+      return v4();
+    }
+  JS
+end
+```
+
+This is equivalent to `import { v4 } from 'uuid'` in JavaScript.
+
 ### Aliasing requires
 
 If the library name cannot be used as name of the constant, the `const` name

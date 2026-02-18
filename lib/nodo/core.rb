@@ -108,9 +108,16 @@ module Nodo
 
       { require: :cjs, import: :esm }.each do |method, type|
         define_method method do |*mods|
-          deps = mods.last.is_a?(Hash) ? mods.pop : {}
-          mods = mods.map { |m| [m, m] }.to_h
-          self.dependencies = dependencies + mods.merge(deps).map { |name, package| Dependency.new(name, package, type: type) }
+          opts = mods.last.is_a?(Hash) ? mods.pop : {}
+
+          if opts[:from] && mods.size == 1
+            name = mods.first
+            package = opts[:from]
+            self.dependencies = dependencies + [Dependency.new(name, package, type: type, named_export: name.to_s)]
+          else
+            mods = mods.map { |m| [m, m] }.to_h
+            self.dependencies = dependencies + mods.merge(opts).map { |name, package| Dependency.new(name, package, type: type) }
+          end
         end
         private method
       end
