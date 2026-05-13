@@ -9,8 +9,9 @@ require 'forwardable'
 
 module Nodo
   class << self
-    attr_accessor :modules_root, :env, :binary, :args, :logger, :debug, :timeout
+    attr_accessor :modules_root, :env, :binary, :args, :logger, :debug, :timeout, :pid
   end
+
   self.modules_root = './node_modules'
   self.env = {}
   self.binary = 'node'
@@ -18,6 +19,13 @@ module Nodo
   self.logger = Logger.new(STDOUT)
   self.debug  = false
   self.timeout = 60
+  self.pid = Process.pid
+
+  class << self
+    def in_fork?
+      Process.pid != pid
+    end
+  end
 end
 
 require_relative 'nodo/version'

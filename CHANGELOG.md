@@ -1,3 +1,7 @@
+## 1.8.3
+
+- Do not terminate node process from fork
+
 ## 1.8.2
 
 - Fix frozen string literal warning (@spiderbites)

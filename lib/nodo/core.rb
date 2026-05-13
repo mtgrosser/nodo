@@ -212,12 +212,18 @@ module Nodo
       env = Nodo.env.merge('NODE_PATH' => Nodo.modules_root.to_s)
       env['NODO_DEBUG'] = '1' if Nodo.debug
       @@node_pid = Process.spawn(env, Nodo.binary, '-e', self.class.generate_core_code, *Nodo.args, '--', socket_path.to_s, err: :out)
-      at_exit do
-        @@exiting = true
-        Process.kill(:SIGTERM, node_pid) rescue Errno::ECHILD
-        Process.wait(node_pid) rescue Errno::ECHILD
-        FileUtils.remove_entry(tmpdir) if File.directory?(tmpdir)
+      at_exit { terminate_node_process }
+    end
+
+    def terminate_node_process
+      return if Nodo.in_fork?
+      @@exiting = true
+      begin
+        Process.kill(:SIGTERM, node_pid)
+        Process.wait(node_pid)
+      rescue Errno::ESRCH, Errno::ECHILD
       end
+      FileUtils.remove_entry(tmpdir) if File.directory?(tmpdir)
     end
 
     def wait_for_socket
