@@ -16,7 +16,7 @@ Gem::Specification.new do |s|
 
   s.files = ['LICENSE', 'README.md'] + Dir['lib/**/*.{rb,cjs}']
   
-  s.required_ruby_version = '>= 3.0.0'
+  s.required_ruby_version = '>= 3.2.0'
   
   s.add_dependency 'logger'
 end
