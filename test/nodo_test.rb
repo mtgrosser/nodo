@@ -8,7 +8,7 @@ class NodoTest < Minitest::Test
     end
     assert_equal 'Hello Nodo!', nodo.new.say_hi('Nodo')
   end
-  
+
   def test_require
     nodo = Class.new(Nodo::Core) do
       require :fs
@@ -17,7 +17,7 @@ class NodoTest < Minitest::Test
     assert_equal true, nodo.instance.exists_file(__FILE__)
     assert_equal false, nodo.instance.exists_file('FOOBARFOO')
   end
-  
+
   def test_require_npm
     nodo = Class.new(Nodo::Core) do
       require :uuid
@@ -26,7 +26,7 @@ class NodoTest < Minitest::Test
     assert uuid = nodo.new.v4
     assert_equal 36, uuid.size
   end
-  
+
   def test_const
     nodo = Class.new(Nodo::Core) do
       const :FOOBAR, 123
@@ -34,7 +34,7 @@ class NodoTest < Minitest::Test
     end
     assert_equal 123, nodo.new.get_const
   end
-  
+
   def test_script
     nodo = Class.new(Nodo::Core) do
       script "var somevar = 99;"
@@ -42,7 +42,7 @@ class NodoTest < Minitest::Test
     end
     assert_equal 99, nodo.new.get_somevar
   end
-  
+
   def test_deferred_script_definition_by_block
     nodo = Class.new(Nodo::Core) do
       singleton_class.attr_accessor :value
@@ -54,7 +54,7 @@ class NodoTest < Minitest::Test
     nodo.value = 123
     assert_equal 123, nodo.new.get_somevar
   end
-  
+
   def test_cannot_define_both_code_and_block_for_script
     assert_raises ArgumentError do
       Class.new(Nodo::Core) do
@@ -64,14 +64,14 @@ class NodoTest < Minitest::Test
       end
     end
   end
-  
+
   def test_async_await
     nodo = Class.new(Nodo::Core) do
       function :do_something, "async () => { return await 'resolved'; }"
     end
     assert_equal 'resolved', nodo.new.do_something
   end
-  
+
   def test_inheritance
     klass = Class.new(Nodo::Core) do
       function :foo, "() => 'superclass'"
@@ -86,7 +86,7 @@ class NodoTest < Minitest::Test
     assert_equal 'callingsuperclass', subclass.new.bar
     assert_equal 'callingsubsubclass', subsubclass.new.bar
   end
-  
+
   def test_class_function
     nodo = Class.new(Nodo::Core) do
       function :hello, "() => 'world'"
@@ -94,7 +94,7 @@ class NodoTest < Minitest::Test
     end
     assert_equal 'world', nodo.hello
   end
-  
+
   def test_syntax
     nodo = Class.new(Nodo::Core) do
       function :test, timeout: nil, code: <<~'JS'
@@ -103,7 +103,7 @@ class NodoTest < Minitest::Test
     end
     assert_equal [1, 2, 3], nodo.new.test
   end
-  
+
   def test_deferred_function_definition_by_block
     nodo = lambda do
       Class.new(Nodo::Core) do
@@ -119,7 +119,7 @@ class NodoTest < Minitest::Test
     assert_equal [1, nil, 3], nodo.().new.test
     assert_equal [1, 222, 3], nodo.().tap { |klass| klass.value = 222 }.new.test
   end
-  
+
   def test_cannot_define_both_code_and_block_for_function
     assert_raises ArgumentError do
       Class.new(Nodo::Core) do
@@ -129,7 +129,7 @@ class NodoTest < Minitest::Test
       end
     end
   end
-  
+
   def test_code_is_required
     assert_raises ArgumentError do
       Class.new(Nodo::Core) do
@@ -138,7 +138,7 @@ class NodoTest < Minitest::Test
       end
     end
   end
-  
+
   def test_timeout
     nodo = Class.new(Nodo::Core) do
       function :sleep, timeout: 1, code: <<~'JS'
@@ -149,7 +149,7 @@ class NodoTest < Minitest::Test
       nodo.new.sleep(2)
     end
   end
-  
+
   def test_internal_method_names_are_reserved
     assert_raises ArgumentError do
       Class.new(Nodo::Core) do
@@ -157,7 +157,7 @@ class NodoTest < Minitest::Test
       end
     end
   end
-  
+
   def test_logging
     with_logger test_logger do
       assert_raises(Nodo::JavaScriptError) do
@@ -178,25 +178,25 @@ class NodoTest < Minitest::Test
       end
     end
   end
-  
+
   def test_evaluation
     assert_equal 8, Class.new(Nodo::Core).new.evaluate('3 + 5')
   end
-  
+
   def test_evaluation_can_access_constants
     nodo = Class.new(Nodo::Core) do
       const :FOO, 'bar'
     end
     assert_equal 'barfoo', nodo.new.evaluate('FOO + "foo"')
   end
-  
+
   def test_evaluation_can_access_functions
     nodo = Class.new(Nodo::Core) do
       function :hello, code: "(name) => `Hello ${name}!`"
     end
     assert_equal 'Hello World!', nodo.new.evaluate('hello("World")')
   end
-  
+
   def test_evaluation_contexts_properties_are_shared_between_instances
     nodo = Class.new(Nodo::Core) do
       const :LIST, []
@@ -209,7 +209,7 @@ class NodoTest < Minitest::Test
     assert_equal %w[one two], one.evaluate('list()')
     assert_equal %w[one two], two.evaluate('list()')
   end
-  
+
   def test_evaluation_contexts_locals_are_separated_by_instance
     nodo = Class.new(Nodo::Core)
     one = nodo.new
@@ -219,26 +219,26 @@ class NodoTest < Minitest::Test
     assert_equal %w[one], one.evaluate('list')
     assert_equal %w[two], two.evaluate('list')
   end
-  
+
   def test_evaluation_can_require_on_its_own
     nodo = Class.new(Nodo::Core).new
     nodo.evaluate('const uuid = require("uuid")')
     uuid = nodo.evaluate('uuid.v4()')
     assert_uuid uuid
   end
-  
+
   def test_evaluation_can_access_requires
     nodo = Class.new(Nodo::Core) { require :uuid }
     uuid = nodo.new.evaluate('uuid.v4()')
     assert_uuid uuid
   end
-  
+
   def test_cannot_instantiate_core
     assert_raises Nodo::ClassError do
       Nodo::Core.new
     end
   end
-  
+
   def test_dynamic_imports_in_functions
     klass = Class.new(Nodo::Core) do
       function :v4, <<~JS
@@ -254,7 +254,7 @@ class NodoTest < Minitest::Test
     assert_uuid uuid_2 = nodo.v4
     assert uuid_1 != uuid_2
   end
-  
+
   def test_dynamic_imports_in_evaluation
     nodo = Class.new(Nodo::Core)
     uuid = nodo.new.evaluate("nodo.import('uuid').then((uuid) => uuid.v4()).catch((e) => null)")
@@ -296,6 +296,43 @@ class NodoTest < Minitest::Test
     assert_uuid uuid
   end
 
+  def test_named_import
+    nodo = Class.new(Nodo::Core) do
+      import :v4, from: 'uuid'
+      function :generate, "() => v4()"
+    end
+
+    assert_uuid nodo.new.generate
+  end
+
+  def test_named_import_with_alias
+    nodo = Class.new(Nodo::Core) do
+      import :existsSync, from: 'fs'
+      function :exists_file, "(file) => existsSync(file)"
+    end
+
+    assert_equal true, nodo.instance.exists_file(__FILE__)
+    assert_equal false, nodo.instance.exists_file('FOOBARFOO')
+  end
+
+  def test_named_import_in_evaluation
+    nodo = Class.new(Nodo::Core) { import :v4, from: 'uuid' }
+    uuid = nodo.new.evaluate('v4()')
+    assert_uuid uuid
+  end
+
+  def test_named_import_dependency_error
+    with_logger nil do
+      nodo = Class.new(Nodo::Core) do
+        import :foo, from: 'nonexistent-package-12345'
+      end
+
+      assert_raises Nodo::DependencyError do
+        nodo.new
+      end
+    end
+  end
+
   private
 
   def test_logger
@@ -305,7 +342,7 @@ class NodoTest < Minitest::Test
       self
     end
   end
-  
+
   def with_logger(logger)
     prev_logger = Nodo.logger
     Nodo.logger = logger
@@ -313,7 +350,7 @@ class NodoTest < Minitest::Test
   ensure
     Nodo.logger = prev_logger
   end
-  
+
   def assert_uuid(obj)
     assert_match /\A\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\z/, obj
   end
