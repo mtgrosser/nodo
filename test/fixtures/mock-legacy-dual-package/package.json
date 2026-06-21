@@ -1,0 +1,6 @@
+{
+  "name": "mock-legacy-dual-package",
+  "version": "1.0.0",
+  "main": "./index.cjs",
+  "module": "./index.mjs"
+}
